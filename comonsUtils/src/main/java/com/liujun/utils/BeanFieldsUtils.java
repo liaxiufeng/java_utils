@@ -1,10 +1,7 @@
 package com.liujun.utils;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,6 +68,61 @@ public class BeanFieldsUtils {
 
     interface FieldNameMapperHandler {
         String handler(String fieldName);
+    }
+
+    public static <T> List<Map<String, Object>> copyPropertiesToMap(List<T> sources, List<String> ignoreSourceFields, Map<String, String> propertiesToMap, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
+        if (sources == null || sources.isEmpty()) {
+            return null;
+        }
+        Object source = sources.get(0);
+        if (source == null) {
+            return null;
+        }
+        Field[] sourceFieldsAll = source.getClass().getDeclaredFields();
+        Stream<Field> sourceFieldsStream = Arrays.stream(sourceFieldsAll);
+        if (ignoreSourceFields != null && !ignoreSourceFields.isEmpty()) {
+            sourceFieldsStream = sourceFieldsStream.filter(field -> !ignoreSourceFields.contains(field.getName()));
+        }
+        if (ignoreOutOfMap && propertiesToMap != null && !propertiesToMap.isEmpty()) {
+            sourceFieldsStream = sourceFieldsStream.filter(field -> propertiesToMap.containsKey(field.getName()));
+        }
+        List<Field> sourceFields = sourceFieldsStream.collect(Collectors.toList());
+        Map<Field, String> fieldsToMap = new HashMap<>();
+        for (Field sourceField : sourceFields) {
+            String sourceFieldName = sourceField.getName();
+            String mapKey = sourceFieldName;
+            if (propertiesToMap != null && !propertiesToMap.isEmpty() && propertiesToMap.containsKey(sourceFieldName)) {
+                mapKey = propertiesToMap.get(sourceFieldName);
+            } else if (commonHandler != null) {
+                mapKey = commonHandler.handler(sourceFieldName);
+            }
+            sourceField.setAccessible(true);
+            fieldsToMap.put(sourceField, mapKey);
+        }
+        return copyPropertiesToMap(sources, fieldsToMap);
+    }
+
+    private static <T> List<Map<String, Object>> copyPropertiesToMap(List<T> sources,Map<Field, String> propertiesToMap){
+        if (sources == null || sources.isEmpty()) {
+            return null;
+        }
+        List<Map<String, Object>> maps = new LinkedList<>();
+        //遍历propertiesToMap
+        for (T source : sources) {
+            Map<String, Object> map = new HashMap<>();
+            for (Map.Entry<Field, String> entry : propertiesToMap.entrySet()) {
+                Field field = entry.getKey();
+                String mapKey = entry.getValue();
+                field.setAccessible(true);
+                try {
+                    map.put(mapKey, field.get(source));
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            maps.add(map);
+        }
+        return maps;
     }
 
     /**
@@ -182,5 +234,15 @@ public class BeanFieldsUtils {
         mapToProperties.put("id_", "id");
         mapToProperties.put("ref_id_", "refId");
         copyMapToProperties(map, model, null, mapToProperties, false, name -> name.substring(2));
+    }
+
+    /**
+     * 将model对象数组转化为外部表的map数组
+     */
+    public static <T> List<Map<String, Object>> copyModelToMap(List<T> models) {
+        Map<String, String> propertiesToMap = new HashMap<>();
+        propertiesToMap.put("id", "id_");
+        propertiesToMap.put("refId", "ref_id_");
+        return copyPropertiesToMap(models, Arrays.asList("formDataRev","serialVersionUID"), propertiesToMap, false, name -> String.format("f_%s", name).toUpperCase());
     }
 }
