@@ -13,6 +13,15 @@ import java.util.stream.Stream;
  */
 public class BeanFieldsUtils {
 
+
+    /**
+     * 属性映射处理器
+     * lambda表达式: 源对象属性名或map的key -> 映射后的对象属性名或map的key
+     */
+    interface FieldNameMapperHandler {
+        String handler(String fieldName);
+    }
+
     /**
      * 复制对象的属性值
      *
@@ -58,9 +67,65 @@ public class BeanFieldsUtils {
         }
     }
 
+    /**
+     * 复制多个对象的属性值
+     *
+     * @param sources                 源对象列表
+     * @param targetClass             目标对象的类
+     * @param ignoreTargetFields      忽略目标对象的属性
+     * @param sourceToTargetFieldsMap 源对象的属性与目标对象的属性的映射关系
+     * @param ignoreOutOfMap          是否忽略映射关系之外的属性
+     */
+    public static <S, T> List<T> copyPropertiesByList(List<S> sources, Class<T> targetClass, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap) throws InstantiationException, IllegalAccessException {
+        if (sources == null || sources.isEmpty()) {
+            return null;
+        }
+        Class<?> sourceClass = sources.get(0).getClass();
+        Field[] sourceFieldsAll = sourceClass.getDeclaredFields();
+        Field[] targetFieldsAll = targetClass.getDeclaredFields();
+        Stream<Field> sourceFieldsStream = Arrays.stream(sourceFieldsAll);
+        Stream<Field> targetFieldsStream = Arrays.stream(targetFieldsAll);
+        if (ignoreTargetFields != null && !ignoreTargetFields.isEmpty()) {
+            targetFieldsStream = targetFieldsStream.filter(field -> !ignoreTargetFields.contains(field.getName()));
+        }
+        if (ignoreOutOfMap && sourceToTargetFieldsMap != null && !sourceToTargetFieldsMap.isEmpty()) {
+            sourceFieldsStream = sourceFieldsStream.filter(field -> sourceToTargetFieldsMap.containsKey(field.getName()));
+            targetFieldsStream = targetFieldsStream.filter(field -> sourceToTargetFieldsMap.containsValue(field.getName()));
+        }
+        List<Field> sourceFields = sourceFieldsStream.collect(Collectors.toList());
+        List<Field> targetFields = targetFieldsStream.collect(Collectors.toList());
+        Map<Field, Field> fieldMap = new HashMap<>();
+        for (Field targetField : targetFields) {
+            String targetFieldName = targetField.getName();
+            for (Field sourceField : sourceFields) {
+                String sourceFieldName = sourceField.getName();
+                if ((sourceToTargetFieldsMap != null && !sourceToTargetFieldsMap.isEmpty() && targetFieldName.equals(sourceToTargetFieldsMap.get(sourceFieldName))) || targetFieldName.equals(sourceFieldName)) {
+                    fieldMap.put(sourceField, targetField);
+                }
+            }
+        }
+        List<T> targetList = new LinkedList<>();
+        for (S s : sources) {
+            T t = targetClass.newInstance();
+            for (Map.Entry<Field, Field> fieldFieldEntry : fieldMap.entrySet()) {
+                Field sourceField = fieldFieldEntry.getKey();
+                Field targetField = fieldFieldEntry.getValue();
+                try {
+                    targetField.setAccessible(true);
+                    sourceField.setAccessible(true);
+                    targetField.set(t, sourceField.get(s));
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            targetList.add(t);
+        }
+        return targetList;
+    }
 
     /**
      * 复制对象相同属性名的值
+     *
      * @param source 源对象
      * @param target 目标对象
      */
@@ -69,12 +134,15 @@ public class BeanFieldsUtils {
     }
 
     /**
-     * 属性映射处理器
-     * lambda表达式: 源对象属性名或map的key -> 映射后的对象属性名或map的key
+     * 复制多个对象相同属性名的值
+     *
+     * @param sources     源对象列表
+     * @param targetClass 目标对象的类
      */
-    interface FieldNameMapperHandler {
-        String handler(String fieldName);
+    public static <S, T> List<T> copyPropertiesByList(List<S> sources, Class<T> targetClass) throws IllegalAccessException, InstantiationException {
+        return copyPropertiesByList(sources, targetClass, null, null, false);
     }
+
 
     /**
      * 将多个对象（按照相同的映射关系）复制到map列表中
