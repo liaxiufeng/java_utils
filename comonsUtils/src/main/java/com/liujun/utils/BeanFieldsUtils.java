@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 类说明
+ * 属性复制工具类
  *
  * @author 刘军
  * @date 2022/10/22
@@ -22,7 +22,7 @@ public class BeanFieldsUtils {
      * @param sourceToTargetFieldsMap 源对象的属性与目标对象的属性的映射关系
      * @param ignoreOutOfMap          是否忽略映射关系之外的属性
      */
-    public static void copyProperties(Object source, Object target, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap) {
+    public static <S, T> void copyProperties(S source, T target, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap) {
         if (source == null || target == null) {
             return;
         }
@@ -61,16 +61,31 @@ public class BeanFieldsUtils {
 
     /**
      * 复制对象相同属性名的值
+     * @param source 源对象
+     * @param target 目标对象
      */
-    public static void copyProperties(Object source, Object target) {
+    public static <S, T> void copyProperties(S source, T target) {
         copyProperties(source, target, null, null, false);
     }
 
+    /**
+     * 属性映射处理器
+     * lambda表达式: 源对象属性名或map的key -> 映射后的对象属性名或map的key
+     */
     interface FieldNameMapperHandler {
         String handler(String fieldName);
     }
 
-    public static <T> List<Map<String, Object>> copyPropertiesToMap(List<T> sources, List<String> ignoreSourceFields, Map<String, String> propertiesToMap, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
+    /**
+     * 将多个对象（按照相同的映射关系）复制到map列表中
+     *
+     * @param sources            源对象列表
+     * @param ignoreSourceFields 忽略源对象的属性
+     * @param propertiesToMap    映射关系
+     * @param ignoreOutOfMap     是否忽略映射关系之外的属性
+     * @param commonHandler      公共映射处理器
+     */
+    public static <S> List<Map<String, Object>> copyPropertiesToMapByList(List<S> sources, List<String> ignoreSourceFields, Map<String, String> propertiesToMap, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
         if (sources == null || sources.isEmpty()) {
             return null;
         }
@@ -99,16 +114,22 @@ public class BeanFieldsUtils {
             sourceField.setAccessible(true);
             fieldsToMap.put(sourceField, mapKey);
         }
-        return copyPropertiesToMap(sources, fieldsToMap);
+        return copyPropertiesToMapByList(sources, fieldsToMap);
     }
 
-    private static <T> List<Map<String, Object>> copyPropertiesToMap(List<T> sources,Map<Field, String> propertiesToMap){
+    /**
+     * 将多个对象复制到map列表中
+     *
+     * @param sources         源对象
+     * @param propertiesToMap 属性与map的key的映射关系
+     */
+    private static <S> List<Map<String, Object>> copyPropertiesToMapByList(List<S> sources, Map<Field, String> propertiesToMap) {
         if (sources == null || sources.isEmpty()) {
             return null;
         }
         List<Map<String, Object>> maps = new LinkedList<>();
         //遍历propertiesToMap
-        for (T source : sources) {
+        for (S source : sources) {
             Map<String, Object> map = new HashMap<>();
             for (Map.Entry<Field, String> entry : propertiesToMap.entrySet()) {
                 Field field = entry.getKey();
@@ -134,7 +155,7 @@ public class BeanFieldsUtils {
      * @param ignoreOutOfMap     是否忽略映射关系之外的源对象的属性
      * @param commonHandler      处理器(源对象的属性名=>map的key)
      */
-    public static Map<String, Object> copyPropertiesToMap(Object source, List<String> ignoreSourceFields, Map<String, String> propertiesToMap, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
+    public static <S> Map<String, Object> copyPropertiesToMap(S source, List<String> ignoreSourceFields, Map<String, String> propertiesToMap, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
         if (source == null) {
             return null;
         }
@@ -166,11 +187,21 @@ public class BeanFieldsUtils {
         return map;
     }
 
-    public static Map<String, Object> copyPropertiesToMap(Object source, List<String> ignoreFields, FieldNameMapperHandler commonHandler) {
+    /**
+     * 将对象属性按指定规制映射map
+     *
+     * @param source        源对象
+     * @param ignoreFields  忽略源对象的属性
+     * @param commonHandler 处理器(源对象的属性名=>map的key)
+     */
+    public static <S> Map<String, Object> copyPropertiesToMap(S source, List<String> ignoreFields, FieldNameMapperHandler commonHandler) {
         return copyPropertiesToMap(source, ignoreFields, null, false, commonHandler);
     }
 
-    public static Map<String, Object> copyPropertiesToMap(Object source) {
+    /**
+     * 将对象的属性映射到map
+     */
+    public static <S> Map<String, Object> copyPropertiesToMap(S source) {
         return copyPropertiesToMap(source, null, null, false, null);
     }
 
@@ -184,7 +215,7 @@ public class BeanFieldsUtils {
      * @param ignoreOutOfMap  是否忽略映射关系之外的map的key
      * @param commonHandler   处理器(map的key=>目标对象的属性名)
      */
-    public static void copyMapToProperties(Map<String, Object> source, Object target, List<String> ignoreMapKey, Map<String, String> mapToProperties, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
+    public static <T> void copyMapToProperties(Map<String, Object> source, T target, List<String> ignoreMapKey, Map<String, String> mapToProperties, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
         if (source == null || target == null) {
             return;
         }
@@ -219,17 +250,17 @@ public class BeanFieldsUtils {
     /**
      * 将model对象转化为外部表的map
      */
-    public static Map<String, Object> copyModelToMap(Object model) {
+    public static <S> Map<String, Object> copyModelToMap(S model) {
         Map<String, String> propertiesToMap = new HashMap<>();
         propertiesToMap.put("id", "id_");
         propertiesToMap.put("refId", "ref_id_");
-        return copyPropertiesToMap(model, Arrays.asList("formDataRev","serialVersionUID"), propertiesToMap, false, name -> String.format("f_%s", name).toUpperCase());
+        return copyPropertiesToMap(model, Arrays.asList("formDataRev", "serialVersionUID"), propertiesToMap, false, name -> String.format("f_%s", name).toUpperCase());
     }
 
     /**
      * 将外部表的map转化为model
      */
-    public static void copyMapToModel(Map<String, Object> map, Object model) {
+    public static <T> void copyMapToModel(Map<String, Object> map, T model) {
         Map<String, String> mapToProperties = new HashMap<>();
         mapToProperties.put("id_", "id");
         mapToProperties.put("ref_id_", "refId");
@@ -237,12 +268,12 @@ public class BeanFieldsUtils {
     }
 
     /**
-     * 将model对象数组转化为外部表的map数组
+     * 将多个model对象数组转化为多个外部表的map数组
      */
-    public static <T> List<Map<String, Object>> copyModelToMap(List<T> models) {
+    public static <S> List<Map<String, Object>> copyModelToMapByList(List<S> models) {
         Map<String, String> propertiesToMap = new HashMap<>();
         propertiesToMap.put("id", "id_");
         propertiesToMap.put("refId", "ref_id_");
-        return copyPropertiesToMap(models, Arrays.asList("formDataRev","serialVersionUID"), propertiesToMap, false, name -> String.format("f_%s", name).toUpperCase());
+        return copyPropertiesToMapByList(models, Arrays.asList("formDataRev", "serialVersionUID"), propertiesToMap, false, name -> String.format("f_%s", name).toUpperCase());
     }
 }
