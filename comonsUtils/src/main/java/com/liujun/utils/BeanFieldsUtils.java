@@ -316,6 +316,113 @@ public class BeanFieldsUtils {
     }
 
     /**
+     * 将map的值复制到对象的属性
+     *
+     * @param sourceMapList    源map的列表
+     * @param modelTargetClass 目标对象的class
+     * @param ignoreMapKey     忽略map的key
+     * @param mapToProperties  映射关系(map的key=>目标对象的属性名)
+     * @param ignoreOutOfMap   是否忽略映射关系之外的map的key
+     * @param commonHandler    处理器(map的key=>目标对象的属性名)
+     */
+    public static <T> List<T> copyMapToPropertiesByList(List<Map<String, Object>> sourceMapList, Class<T> modelTargetClass, List<String> ignoreMapKey, Map<String, String> mapToProperties, boolean ignoreOutOfMap, FieldNameMapperHandler commonHandler) {
+        if (sourceMapList == null || sourceMapList.isEmpty()) {
+            return null;
+        }
+        if (modelTargetClass == null) {
+            return null;
+        }
+        Stream<String> sourceKeyStream = sourceMapList.get(0).keySet().stream();
+        if (ignoreMapKey != null && !ignoreMapKey.isEmpty()) {
+            sourceKeyStream = sourceKeyStream.filter(key -> !ignoreMapKey.contains(key));
+        }
+        if (ignoreOutOfMap && mapToProperties != null && !mapToProperties.isEmpty()) {
+            sourceKeyStream = sourceKeyStream.filter(mapToProperties::containsKey);
+        }
+        Field[] targetFieldsAll = modelTargetClass.getDeclaredFields();
+        List<String> sourcesFieldNamesAll = sourceKeyStream.collect(Collectors.toList());
+        Map<String, Field> keyToFieldMap = new HashMap<>();
+        for (Field targetField : targetFieldsAll) {
+            String targetFieldName = targetField.getName();
+            for (String sourceKey : sourcesFieldNamesAll) {
+                if (
+                        (commonHandler != null && commonHandler.handler(sourceKey).equals(targetFieldName)) ||
+                                (mapToProperties != null && !mapToProperties.isEmpty() && targetFieldName.equals(mapToProperties.get(sourceKey)))
+                                || targetFieldName.equals(sourceKey)
+                ) {
+                    keyToFieldMap.put(sourceKey, targetField);
+                }
+            }
+        }
+        List<T> targetResults = new ArrayList<>();
+        for (Map<String, Object> source : sourceMapList) {
+            T target = null;
+            try {
+                target = modelTargetClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            if (target == null) {
+                continue;
+            }
+            for (String sourceKey : sourcesFieldNamesAll) {
+                Field targetField = keyToFieldMap.get(sourceKey);
+                if (targetField == null) {
+                    continue;
+                }
+                try {
+                    targetField.setAccessible(true);
+                    Class<?> type = targetField.getType();
+                    //基础类型
+                    Object sourceValueObj = source.get(sourceKey);
+                    if (sourceValueObj == null){
+                        continue;
+                    }
+                    String sourceValueStr = sourceValueObj.toString();
+                    if (sourceValueStr.length() == 0){
+                        continue;
+                    }
+                    if (type == Boolean.class){
+                        targetField.set(target, Boolean.parseBoolean(sourceValueStr));
+                    }
+                    else if (type == Character.class){
+                        targetField.set(target, sourceValueStr.charAt(0));
+                    }
+                    else if (type == Byte.class){
+                        targetField.set(target, Byte.parseByte(sourceValueStr));
+                    }
+                    else if (type == Short.class){
+                        targetField.set(target, Short.parseShort(sourceValueStr));
+                    }
+                    else if (type == Integer.class){
+                        targetField.set(target, Integer.parseInt(sourceValueStr));
+                    }
+                    else if (type == Long.class){
+                        targetField.set(target, Long.parseLong(sourceValueStr));
+                    }
+                    else if (type == Float.class){
+                        targetField.set(target, Float.parseFloat(sourceValueStr));
+                    }
+                    else if (type == Double.class){
+                        targetField.set(target, Double.parseDouble(sourceValueStr));
+                    }
+                    else if (type == Void.class){
+                        targetField.set(target, null);
+                    }
+                    //引用类型
+                    else {
+                        targetField.set(target, type.cast(sourceValueObj));
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            targetResults.add(target);
+        }
+        return targetResults;
+    }
+
+    /**
      * 将model对象转化为外部表的map
      */
     public static <S> Map<String, Object> copyModelToMap(S model) {
@@ -333,6 +440,16 @@ public class BeanFieldsUtils {
         mapToProperties.put("id_", "id");
         mapToProperties.put("ref_id_", "refId");
         copyMapToProperties(map, model, null, mapToProperties, false, name -> name.substring(2));
+    }
+
+    /**
+     * 将多个外部表的map转化为model
+     */
+    public static <T> List<T> copyMapToModelByList(List<Map<String, Object>> maps, Class<T> modelTargetClass) {
+        Map<String, String> mapToProperties = new HashMap<>();
+        mapToProperties.put("id_", "id");
+        mapToProperties.put("ref_id_", "refId");
+        return copyMapToPropertiesByList(maps, modelTargetClass, null, mapToProperties, false, name -> name.substring(2).toLowerCase());
     }
 
     /**

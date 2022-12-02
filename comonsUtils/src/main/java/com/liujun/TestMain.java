@@ -7,11 +7,12 @@ import com.liujun.bean.ProjectBudget;
 import com.liujun.utils.BeanFieldsUtils;
 import org.junit.Test;
 
+import java.lang.reflect.ParameterizedType;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TestMain {
+    private int a = 1;
 
     public static void main(String[] args) throws ParseException {
         A a = new A("a1", "a2");
@@ -38,5 +39,10 @@ public class TestMain {
         budget.setFormDataRev(1L);
         Map<String, Object> stringObjectMap = BeanFieldsUtils.copyModelToMap(budget);
         System.out.println("stringObjectMap = " + stringObjectMap);
+    }
+    @Test
+    public void test2(){
+        List<TestMain> list = new ArrayList<TestMain>(){};
+        System.out.println("list = " + ((Class)((ParameterizedType)list.getClass().getGenericSuperclass()).getActualTypeArguments()[0]).getDeclaredFields().length);
     }
 }
