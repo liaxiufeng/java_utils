@@ -58,10 +58,10 @@ public class BeanFieldsUtils {
         if (sourceToTargetFieldsMap != null && !sourceToTargetFieldsMap.isEmpty()){
             for (String sourceFieldName : sourceFieldsFilter) {
                 if (sourceToTargetFieldsMap.containsKey(sourceFieldName)){
-                    for (String targetFieldName:targetFieldsFilter){
-                        if (sourceToTargetFieldsMap.containsValue(targetFieldName)){
-                            fieldNameMap.put(sourceFieldName,targetFieldName);
-                        }
+                    String targetFieldName = sourceToTargetFieldsMap.get(sourceFieldName);
+                    //不允许多个源属性同时赋值到一个目标属性
+                    if (!fieldNameMap.containsValue(targetFieldName)){
+                        fieldNameMap.put(sourceFieldName,targetFieldName);
                     }
                 }
             }
@@ -133,7 +133,7 @@ public class BeanFieldsUtils {
 
             //将剩余的属性按属性名一致原则存入map
             for (String sourceFieldName : sourceFields) {
-                if (!fieldsToMap.containsKey(sourceFieldName)){
+                if (!fieldsToMap.containsKey(sourceFieldName) && !fieldsToMap.containsValue(sourceFieldName)){
                     fieldsToMap.put(sourceFieldName, sourceFieldName);
                 }
             }
