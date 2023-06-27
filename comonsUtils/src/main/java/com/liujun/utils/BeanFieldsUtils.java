@@ -43,11 +43,10 @@ public class BeanFieldsUtils {
      * @param fieldFieldMap (源属性名->目标属性名)映射map
      * @param <S>           源对象类型
      * @param <T>           目标对象类型
-     * @return 目标对象
      */
-    private static <S, T> T copyPropertyToProperty(S source, T target, Map<Field, Field> fieldFieldMap) {
+    private static <S, T> void copyPropertyToProperty(S source, T target, Map<Field, Field> fieldFieldMap) {
         if (source == null || target == null || fieldFieldMap == null || fieldFieldMap.isEmpty()) {
-            return target;
+            return;
         }
         for (Map.Entry<Field, Field> entry : fieldFieldMap.entrySet()) {
             Field sourceField = entry.getKey();
@@ -60,7 +59,6 @@ public class BeanFieldsUtils {
                 e.printStackTrace();
             }
         }
-        return target;
     }
 
     /**
@@ -71,11 +69,10 @@ public class BeanFieldsUtils {
      * @param fieldKeyMap (源属性名->目标属性名)映射map
      * @param <S>         源对象类型
      * @param <T>         目标map值类型
-     * @return 目标map
      */
-    private static <S, T> Map<String, T> copyPropertyToKey(S source, Map<String, T> target, Map<Field, String> fieldKeyMap) {
+    private static <S, T> void copyPropertyToKey(S source, Map<String, T> target, Map<Field, String> fieldKeyMap) {
         if (source == null || target == null || fieldKeyMap == null || fieldKeyMap.isEmpty()) {
-            return target;
+            return;
         }
         for (Map.Entry<Field, String> entry : fieldKeyMap.entrySet()) {
             Field sourceField = entry.getKey();
@@ -87,7 +84,6 @@ public class BeanFieldsUtils {
                 e.printStackTrace();
             }
         }
-        return target;
     }
 
     /**
@@ -98,11 +94,10 @@ public class BeanFieldsUtils {
      * @param keyFieldMap (源属性名->目标属性名)映射map
      * @param <S>         源map属性值类型
      * @param <T>         目标对象类型
-     * @return 目标对象
      */
-    private static <S, T> T copyKeyToProperty(Map<String, S> source, T target, Map<String, Field> keyFieldMap) {
+    private static <S, T> void copyKeyToProperty(Map<String, S> source, T target, Map<String, Field> keyFieldMap) {
         if (source == null || target == null || keyFieldMap == null || keyFieldMap.isEmpty()) {
-            return target;
+            return;
         }
         for (Map.Entry<String, Field> entry : keyFieldMap.entrySet()) {
             String sourceKey = entry.getKey();
@@ -114,7 +109,6 @@ public class BeanFieldsUtils {
                 e.printStackTrace();
             }
         }
-        return target;
     }
 
     /**
@@ -124,18 +118,16 @@ public class BeanFieldsUtils {
      * @param keyKeyMap (源属性名->目标属性名)映射map
      * @param <S>       源map属性值类型
      * @param <T>       目标map属性值类型
-     * @return 目标map
      */
-    private static <S, T> Map<String, T> copyKeyToKey(Map<String, S> source, Map<String, T> target, Map<String, String> keyKeyMap) {
+    private static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, Map<String, String> keyKeyMap) {
         if (source == null || target == null || keyKeyMap == null || keyKeyMap.isEmpty()) {
-            return target;
+            return;
         }
         for (Map.Entry<String, String> entry : keyKeyMap.entrySet()) {
             String sourceKey = entry.getKey();
             String targetKey = entry.getValue();
             target.put(targetKey, (T) source.get(sourceKey));
         }
-        return target;
     }
 
     private static List<String> filedNameFilter(List<String> allFields, List<String> ignoreFields, Collection<String> fieldsInMap, boolean ignoreOutOfMap) {
