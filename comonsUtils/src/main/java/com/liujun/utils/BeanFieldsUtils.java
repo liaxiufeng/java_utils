@@ -1,8 +1,6 @@
 package com.liujun.utils;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +34,113 @@ public class BeanFieldsUtils {
     }
 
     /**
+     * 类型转换<br/>
+     * 支持可强转化类型之间转换，字符串转基本类型，各种类型转字符串<br/>
+     * 当转化失败时，会抛出异常，或返回null<br/>
+     *
+     * @param source      源对象
+     * @param targetClass 目标类型
+     * @param <S>         源对象类型
+     * @param <T>         目标对象类型
+     * @return 目标对象
+     * @todo 考虑支持常见时间格式的字符串转Date类型，并考虑支持自定义时间格式
+     */
+    public static <S, T> T parse(S source, Class<T> targetClass) {
+        if (source == null || targetClass == null) {
+            return null;
+        }
+        //将非包装类的基本类型转化为包装类
+        String targetClassName = targetClass.getName();
+        int lastSplitIndex = targetClassName.lastIndexOf(".");
+        String targetClassSimpleName = targetClassName.substring(lastSplitIndex + 1);
+        switch (targetClassSimpleName) {
+            case "byte":
+                targetClass = (Class<T>) Byte.class;
+                targetClassSimpleName = "Byte";
+                break;
+            case "int":
+                targetClass = (Class<T>) Integer.class;
+                targetClassSimpleName = "Integer";
+                break;
+            case "short":
+                targetClass = (Class<T>) Short.class;
+                targetClassSimpleName = "Short";
+                break;
+            case "long":
+                targetClass = (Class<T>) Long.class;
+                targetClassSimpleName = "Long";
+                break;
+            case "float":
+                targetClass = (Class<T>) Float.class;
+                targetClassSimpleName = "Float";
+                break;
+            case "double":
+                targetClass = (Class<T>) Double.class;
+                targetClassSimpleName = "Double";
+                break;
+            case "char":
+                targetClass = (Class<T>) Character.class;
+                targetClassSimpleName = "Character";
+                break;
+            case "boolean":
+                targetClass = (Class<T>) Boolean.class;
+                targetClassSimpleName = "Boolean";
+                break;
+            default:
+                break;
+        }
+        //? -> ? (可强制转换时)
+        if (targetClass.isInstance(source)) {
+            return (T) source;
+        }
+        //? -> string
+        if (targetClass.isAssignableFrom(String.class)) {
+            if (Date.class.isAssignableFrom(targetClass)) {
+                //todo
+                //日期格式转换
+            }
+            return (T) String.valueOf(source);
+        }
+        //string -> ?
+        Class<?> sourceClass = source.getClass();
+        if (sourceClass.isAssignableFrom(String.class)) {
+            String sourceStr = (String) source;
+            switch (targetClassSimpleName) {
+                case "Byte":
+                    return (T) Byte.valueOf(sourceStr);
+                case "Integer":
+                    return (T) Integer.valueOf(sourceStr);
+                case "Short":
+                    return (T) Short.valueOf(sourceStr);
+                case "Long":
+                    return (T) Long.valueOf(sourceStr);
+                case "Float":
+                    return (T) Float.valueOf(sourceStr);
+                case "Double":
+                    return (T) Double.valueOf(sourceStr);
+                case "Character":
+                    return (T) Character.valueOf((sourceStr).charAt(0));
+                case "Boolean":
+                    String lowerCase = sourceStr.toLowerCase();
+                    if ("true".equals(lowerCase) || "false".equals(lowerCase)) {
+                        return (T) Boolean.valueOf(lowerCase);
+                    }
+                    if ("^-?\\d+([.]\\d+)?&".matches(lowerCase)) {
+                        return (T) Boolean.valueOf(Double.valueOf(lowerCase) > 0);
+                    }
+                    return null;
+                default:
+                    break;
+            }
+            if (Date.class.isAssignableFrom(targetClass)) {
+                //todo
+                //日期格式转换
+            }
+        }
+        return null;
+    }
+
+    /**
      * 对象的属性值复制到另一个对象
      *
      * @param source        源对象
@@ -54,7 +159,10 @@ public class BeanFieldsUtils {
             try {
                 sourceField.setAccessible(true);
                 targetField.setAccessible(true);
-                targetField.set(target, sourceField.get(source));
+                Object value = parse(sourceField.get(source), targetField.getType());
+                if (value != null) {
+                    targetField.set(target, value);
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -79,7 +187,11 @@ public class BeanFieldsUtils {
             String targetKey = entry.getValue();
             try {
                 sourceField.setAccessible(true);
-                target.put(targetKey, (T) sourceField.get(source));
+                Class<?> targetValueClass = getGenericType(target, 1);
+                Object value = parse(sourceField.get(source), targetValueClass);
+                if (value != null) {
+                    target.put(targetKey, (T) value);
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -104,7 +216,10 @@ public class BeanFieldsUtils {
             Field targetField = entry.getValue();
             try {
                 targetField.setAccessible(true);
-                targetField.set(target, source.get(sourceKey));
+                Object value = parse(source.get(sourceKey), targetField.getType());
+                if (value != null) {
+                    targetField.set(target, value);
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -126,7 +241,11 @@ public class BeanFieldsUtils {
         for (Map.Entry<String, String> entry : keyKeyMap.entrySet()) {
             String sourceKey = entry.getKey();
             String targetKey = entry.getValue();
-            target.put(targetKey, (T) source.get(sourceKey));
+            Class<?> targetValueClass = getGenericType(target, 1);
+            Object value = parse(source.get(sourceKey), targetValueClass);
+            if (value != null) {
+                target.put(targetKey, (T) value);
+            }
         }
     }
 
@@ -248,6 +367,7 @@ public class BeanFieldsUtils {
 
     /**
      * 获取泛型类型
+     *
      * @param obj obj 对象
      * @return 泛型类型
      */
@@ -269,6 +389,7 @@ public class BeanFieldsUtils {
             return null;
         }
         Field[] sourceFields = sourceClass.getDeclaredFields();
+        sourceFields = Arrays.stream(sourceFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
         List<String> sourceFieldNames = new LinkedList<>();
         Map<String, Field> sourceFieldNameMap = new HashMap<>();
         for (Field sourceField : sourceFields) {
@@ -276,6 +397,7 @@ public class BeanFieldsUtils {
             sourceFieldNameMap.put(sourceField.getName(), sourceField);
         }
         Field[] targetFields = targetClass.getDeclaredFields();
+        targetFields = Arrays.stream(targetFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
         List<String> targetFieldNames = new LinkedList<>();
         Map<String, Field> targetFieldNameMap = new HashMap<>();
         for (Field targetField : targetFields) {
@@ -297,6 +419,7 @@ public class BeanFieldsUtils {
             return null;
         }
         Field[] sourceFields = sourceClass.getDeclaredFields();
+        sourceFields = Arrays.stream(sourceFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
         List<String> sourceFieldNames = new LinkedList<>();
         Map<String, Field> sourceFieldNameMap = new HashMap<>();
         for (Field sourceField : sourceFields) {
@@ -318,6 +441,7 @@ public class BeanFieldsUtils {
             return null;
         }
         Field[] targetFields = targetClass.getDeclaredFields();
+        targetFields = Arrays.stream(targetFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
         List<String> targetFieldNames = new LinkedList<>();
         Map<String, Field> targetFieldNameMap = new HashMap<>();
         for (Field targetField : targetFields) {
@@ -359,7 +483,7 @@ public class BeanFieldsUtils {
         Class<?> sourceGenericType = getGenericType(source, 0);
         Class<?> targetGenericType = getGenericType(target, 0);
         Map<Field, Field> fieldMap = getFieldMap(sourceGenericType, targetGenericType, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
-        for (S sourceItem: source) {
+        for (S sourceItem : source) {
             T targetItem = (T) targetGenericType.newInstance();
             copyPropertyToProperty(sourceItem, targetItem, fieldMap);
             target.add(targetItem);
@@ -367,7 +491,7 @@ public class BeanFieldsUtils {
         copyPropertyToProperty(source, target, fieldMap);
     }
 
-    public static <S,T> void copyPropertyToKey(S source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyPropertyToKey(S source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null) {
             return;
         }
@@ -376,20 +500,20 @@ public class BeanFieldsUtils {
         copyPropertyToKey(source, target, fieldMap);
     }
 
-    public static <S,T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null || source.isEmpty()) {
             return;
         }
         Class<?> sourceClass = source.getClass();
         Map<Field, String> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
-        for (S sourceItem: source) {
+        for (S sourceItem : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyPropertyToKey(sourceItem, targetItem, fieldMap);
             target.add(targetItem);
         }
     }
 
-    public static <S,T> void copyKeyToProperty(Map<String, S> source, T target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    public static <S, T> void copyKeyToProperty(Map<String, S> source, T target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -398,7 +522,7 @@ public class BeanFieldsUtils {
         copyKeyToProperty(source, target, fieldMap);
     }
 
-    public static <S,T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -408,14 +532,14 @@ public class BeanFieldsUtils {
         }
         Class<?> targetClass = target.getClass();
         Map<String, Field> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
-        for (Map<String, S> sourceTemp: source) {
+        for (Map<String, S> sourceTemp : source) {
             T targetItem = (T) targetClass.newInstance();
             copyKeyToProperty(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
         }
     }
 
-    public static <S,T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null || target.isEmpty()) {
             return;
         }
@@ -423,7 +547,7 @@ public class BeanFieldsUtils {
         copyKeyToKey(source, target, fieldMap);
     }
 
-    public static <S,T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -431,7 +555,7 @@ public class BeanFieldsUtils {
         copyKeyToKey(source, target, fieldMap);
     }
 
-    public static <S,T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -440,7 +564,7 @@ public class BeanFieldsUtils {
             return;
         }
         Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
-        for (Map<String, S> sourceTemp: source) {
+        for (Map<String, S> sourceTemp : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
