@@ -49,6 +49,11 @@ public class BeanFieldsUtils {
         if (source == null || targetClass == null) {
             return null;
         }
+        Class<?> sourceClass = source.getClass();
+        //同类型，可强制转换的类型
+        if (sourceClass == targetClass || targetClass.isInstance(source)) {
+            return (T) source;
+        }
         //将非包装类的基本类型转化为包装类
         String targetClassName = targetClass.getName();
         int lastSplitIndex = targetClassName.lastIndexOf(".");
@@ -102,7 +107,6 @@ public class BeanFieldsUtils {
             return (T) String.valueOf(source);
         }
         //string -> ?
-        Class<?> sourceClass = source.getClass();
         if (sourceClass.isAssignableFrom(String.class)) {
             String sourceStr = (String) source;
             switch (targetClassSimpleName) {
