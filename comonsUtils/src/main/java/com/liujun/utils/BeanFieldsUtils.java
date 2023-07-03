@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  */
 public class BeanFieldsUtils {
 
-    interface FieldNameCompareHandler {
+    public interface FieldNameCompareHandler {
         /**
          * @param sourceFieldName 源属性名称或key
          * @param targetFieldName 目标属性名称或key
@@ -22,7 +22,7 @@ public class BeanFieldsUtils {
         boolean handler(String sourceFieldName, String targetFieldName);
     }
 
-    interface FieldNameConvertHandler {
+    public interface FieldNameConvertHandler {
         /**
          * 属性名映射处理器
          * lambda表达式: 源对象属性名或key -> 目标对象属性名或key
@@ -149,7 +149,7 @@ public class BeanFieldsUtils {
      *
      * @param source        源对象
      * @param target        目标对象
-     * @param fieldFieldMap (源属性名->目标属性名)映射map
+     * @param fieldFieldMap (目标属性名->源属性名)映射map
      * @param <S>           源对象类型
      * @param <T>           目标对象类型
      */
@@ -158,8 +158,8 @@ public class BeanFieldsUtils {
             return;
         }
         for (Map.Entry<Field, Field> entry : fieldFieldMap.entrySet()) {
-            Field sourceField = entry.getKey();
-            Field targetField = entry.getValue();
+            Field targetField = entry.getKey();
+            Field sourceField = entry.getValue();
             try {
                 sourceField.setAccessible(true);
                 targetField.setAccessible(true);
@@ -178,17 +178,17 @@ public class BeanFieldsUtils {
      *
      * @param source      源对象
      * @param target      目标map
-     * @param fieldKeyMap (源属性名->目标属性名)映射map
+     * @param fieldKeyMap (目标属性名->源属性名)映射map
      * @param <S>         源对象类型
      * @param <T>         目标map值类型
      */
-    private static <S, T> void copyPropertyToKey(S source, Map<String, T> target, Map<Field, String> fieldKeyMap) {
+    private static <S, T> void copyPropertyToKey(S source, Map<String, T> target, Map<String, Field> fieldKeyMap) {
         if (source == null || target == null || fieldKeyMap == null || fieldKeyMap.isEmpty()) {
             return;
         }
-        for (Map.Entry<Field, String> entry : fieldKeyMap.entrySet()) {
-            Field sourceField = entry.getKey();
-            String targetKey = entry.getValue();
+        for (Map.Entry<String, Field> entry : fieldKeyMap.entrySet()) {
+            String targetKey = entry.getKey();
+            Field sourceField = entry.getValue();
             try {
                 sourceField.setAccessible(true);
                 Class<?> targetValueClass = getGenericType(target, 1);
@@ -207,17 +207,17 @@ public class BeanFieldsUtils {
      *
      * @param source      源map
      * @param target      目标对象
-     * @param keyFieldMap (源属性名->目标属性名)映射map
+     * @param keyFieldMap (目标属性名->源属性名)映射map
      * @param <S>         源map属性值类型
      * @param <T>         目标对象类型
      */
-    private static <S, T> void copyKeyToProperty(Map<String, S> source, T target, Map<String, Field> keyFieldMap) {
+    private static <S, T> void copyKeyToProperty(Map<String, S> source, T target, Map<Field, String> keyFieldMap) {
         if (source == null || target == null || keyFieldMap == null || keyFieldMap.isEmpty()) {
             return;
         }
-        for (Map.Entry<String, Field> entry : keyFieldMap.entrySet()) {
-            String sourceKey = entry.getKey();
-            Field targetField = entry.getValue();
+        for (Map.Entry<Field, String> entry : keyFieldMap.entrySet()) {
+            Field targetField = entry.getKey();
+            String sourceKey = entry.getValue();
             try {
                 targetField.setAccessible(true);
                 Object value = parse(source.get(sourceKey), targetField.getType());
@@ -234,7 +234,7 @@ public class BeanFieldsUtils {
      * map的属性值复制到map的属性值
      *
      * @param source    源map
-     * @param keyKeyMap (源属性名->目标属性名)映射map
+     * @param keyKeyMap (目标属性名->源属性名)映射map
      * @param <S>       源map属性值类型
      * @param <T>       目标map属性值类型
      */
@@ -243,8 +243,8 @@ public class BeanFieldsUtils {
             return;
         }
         for (Map.Entry<String, String> entry : keyKeyMap.entrySet()) {
-            String sourceKey = entry.getKey();
-            String targetKey = entry.getValue();
+            String targetKey = entry.getKey();
+            String sourceKey = entry.getValue();
             Class<?> targetValueClass = getGenericType(target, 1);
             Object value = parse(source.get(sourceKey), targetValueClass);
             if (value != null) {
@@ -264,15 +264,20 @@ public class BeanFieldsUtils {
         return fieldsStream.collect(Collectors.toList());
     }
 
+    private static void addFieldNameMap(Map<String, String> fieldNameMap, String sourceFieldName, String targetFieldName, boolean override) {
+        if (!fieldNameMap.containsKey(targetFieldName) || override) {
+            fieldNameMap.put(targetFieldName, sourceFieldName);
+        }
+    }
+
     private static void sourceToTargetFieldsMapConvert(Map<String, String> fieldNameMap, List<String> sourceFieldsFilter, List<String> targetFieldsFilter, Map<String, String> sourceToTargetFieldsMap) {
         //将映射map中的映射关系存入map
         if (sourceToTargetFieldsMap != null && !sourceToTargetFieldsMap.isEmpty()) {
             for (String sourceFieldName : sourceFieldsFilter) {
                 if (sourceToTargetFieldsMap.containsKey(sourceFieldName)) {
                     String targetFieldName = sourceToTargetFieldsMap.get(sourceFieldName);
-                    //不允许多个源属性同时赋值到一个目标属性
-                    if (!fieldNameMap.containsValue(targetFieldName) && targetFieldsFilter.contains(targetFieldName)) {
-                        fieldNameMap.put(sourceFieldName, targetFieldName);
+                    if (targetFieldsFilter.contains(targetFieldName)) {
+                        addFieldNameMap(fieldNameMap, sourceFieldName, targetFieldName, true);
                     }
                 }
             }
@@ -285,10 +290,7 @@ public class BeanFieldsUtils {
             for (String sourceFieldName : sourceFieldsFilter) {
                 if (sourceToTargetFieldsMap.containsKey(sourceFieldName)) {
                     String targetFieldName = sourceToTargetFieldsMap.get(sourceFieldName);
-                    //不允许多个源属性同时赋值到一个目标属性
-                    if (!fieldNameMap.containsValue(targetFieldName)) {
-                        fieldNameMap.put(sourceFieldName, targetFieldName);
-                    }
+                    addFieldNameMap(fieldNameMap, sourceFieldName, targetFieldName, true);
                 }
             }
         }
@@ -299,10 +301,9 @@ public class BeanFieldsUtils {
             //通过属性映射处理器将剩余符合条件的属性映射关系存入map
             if (fieldNameCompareHandler != null) {
                 for (String sourceFieldName : sourceFieldsFilter) {
-                    //不允许多个源属性同时赋值到一个目标属性
                     for (String targetFieldName : targetFieldsFilter) {
-                        if (fieldNameCompareHandler.handler(sourceFieldName, targetFieldName) && !fieldNameMap.containsValue(targetFieldName)) {
-                            fieldNameMap.put(sourceFieldName, targetFieldName);
+                        if (fieldNameCompareHandler.handler(sourceFieldName, targetFieldName)) {
+                            addFieldNameMap(fieldNameMap, sourceFieldName, targetFieldName, true);
                         }
                     }
                 }
@@ -310,11 +311,8 @@ public class BeanFieldsUtils {
             //将剩余的属性名一致的映射关系存入map
             if (fieldNameMap.size() < sourceFieldsFilter.size() && fieldNameMap.size() < targetFieldsFilter.size()) {
                 for (String sourceFieldName : sourceFieldsFilter) {
-                    for (String targetFieldName : targetFieldsFilter) {
-                        //不允许多个源属性同时赋值到一个目标属性
-                        if (sourceFieldName.equals(targetFieldName) && !fieldNameMap.containsValue(targetFieldName)) {
-                            fieldNameMap.put(sourceFieldName, targetFieldName);
-                        }
+                    if (targetFieldsFilter.contains(sourceFieldName)) {
+                        addFieldNameMap(fieldNameMap, sourceFieldName, sourceFieldName, false);
                     }
                 }
             }
@@ -326,20 +324,14 @@ public class BeanFieldsUtils {
             //通过属性映射处理器将剩余符合条件的属性映射关系存入map
             if (fieldNameConvertHandler != null) {
                 for (String sourceFieldName : sourceFieldsFilter) {
-                    //不允许多个源属性同时赋值到一个目标属性
                     String handlerTargetFieldName = fieldNameConvertHandler.handler(sourceFieldName);
-                    if (!fieldNameMap.containsValue(handlerTargetFieldName)) {
-                        fieldNameMap.put(sourceFieldName, handlerTargetFieldName);
-                    }
+                    addFieldNameMap(fieldNameMap, sourceFieldName, handlerTargetFieldName, true);
                 }
             }
             //将剩余的属性名一致的映射关系存入map
             if (fieldNameMap.size() < sourceFieldsFilter.size()) {
                 for (String sourceFieldName : sourceFieldsFilter) {
-                    //不允许多个源属性同时赋值到一个目标属性
-                    if (!fieldNameMap.containsValue(sourceFieldName) && !fieldNameMap.containsKey(sourceFieldName)) {
-                        fieldNameMap.put(sourceFieldName, sourceFieldName);
-                    }
+                    addFieldNameMap(fieldNameMap, sourceFieldName, sourceFieldName, false);
                 }
             }
         }
@@ -411,14 +403,19 @@ public class BeanFieldsUtils {
         Map<String, String> fieldNameMap = filedNameMapConvert(sourceFieldNames, targetFieldNames, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         Map<Field, Field> fieldMap = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-            String sourceFieldName = entry.getKey();
-            String targetFieldName = entry.getValue();
-            fieldMap.put(sourceFieldNameMap.get(sourceFieldName), targetFieldNameMap.get(targetFieldName));
+            String targetFieldName = entry.getKey();
+            String sourceFieldName = entry.getValue();
+            Field targetField = targetFieldNameMap.get(targetFieldName);
+            Field sourceField = sourceFieldNameMap.get(sourceFieldName);
+            if (targetField == null && sourceField == null){
+                fieldMap.put(targetField, sourceField);
+            }
+            fieldMap.put(targetField, sourceField);
         }
         return fieldMap;
     }
 
-    private static Map<Field, String> getFieldMap(Class<?> sourceClass, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    private static Map<String, Field> getFieldMap(Class<?> sourceClass, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (sourceClass == null) {
             return null;
         }
@@ -431,16 +428,16 @@ public class BeanFieldsUtils {
             sourceFieldNameMap.put(sourceField.getName(), sourceField);
         }
         Map<String, String> fieldNameMap = filedNameMapConvert(sourceFieldNames, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
-        Map<Field, String> fieldMap = new HashMap<>();
+        Map<String, Field> fieldMap = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-            String sourceFieldName = entry.getKey();
-            String targetFieldName = entry.getValue();
-            fieldMap.put(sourceFieldNameMap.get(sourceFieldName), targetFieldName);
+            String targetFieldName = entry.getKey();
+            String sourceFieldName = entry.getValue();
+            fieldMap.put(targetFieldName, sourceFieldNameMap.get(sourceFieldName));
         }
         return fieldMap;
     }
 
-    private static Map<String, Field> getFieldMap(Set<String> sourceFieldNames, Class<?> targetClass, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    private static Map<Field, String> getFieldMap(Set<String> sourceFieldNames, Class<?> targetClass, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (targetClass == null) {
             return null;
         }
@@ -453,11 +450,11 @@ public class BeanFieldsUtils {
             targetFieldNameMap.put(targetField.getName(), targetField);
         }
         Map<String, String> fieldNameMap = filedNameMapConvert(new ArrayList<>(sourceFieldNames), targetFieldNames, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
-        Map<String, Field> fieldMap = new HashMap<>();
+        Map<Field, String> fieldMap = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-            String sourceFieldName = entry.getKey();
-            String targetFieldName = entry.getValue();
-            fieldMap.put(sourceFieldName, targetFieldNameMap.get(targetFieldName));
+            String targetFieldName = entry.getKey();
+            String sourceFieldName = entry.getValue();
+            fieldMap.put(targetFieldNameMap.get(targetFieldName), sourceFieldName);
         }
         return fieldMap;
     }
@@ -500,7 +497,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> sourceClass = source.getClass();
-        Map<Field, String> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyPropertyToKey(source, target, fieldMap);
     }
 
@@ -509,7 +506,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> sourceClass = source.getClass();
-        Map<Field, String> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (S sourceItem : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyPropertyToKey(sourceItem, targetItem, fieldMap);
@@ -522,7 +519,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> targetClass = target.getClass();
-        Map<String, Field> fieldMap = getFieldMap(source.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<Field, String> fieldMap = getFieldMap(source.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         copyKeyToProperty(source, target, fieldMap);
     }
 
@@ -535,7 +532,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> targetClass = target.getClass();
-        Map<String, Field> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<Field, String> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (Map<String, S> sourceTemp : source) {
             T targetItem = (T) targetClass.newInstance();
             copyKeyToProperty(sourceTemp, targetItem, fieldMap);

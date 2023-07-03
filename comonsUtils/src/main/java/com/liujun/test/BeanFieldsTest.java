@@ -6,6 +6,9 @@ import com.liujun.bean.PersonBeanFactory;
 import com.liujun.utils.BeanFieldsUtils;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * 类说明
  *
@@ -14,7 +17,7 @@ import org.junit.Test;
  */
 public class BeanFieldsTest {
 
-    private void log(Object source, Object target){
+    private void log(Object source, Object target) {
         System.out.println(source.toString());
         System.out.println(target.toString());
         System.out.println("=========================================");
@@ -40,6 +43,52 @@ public class BeanFieldsTest {
         emptyPersonA = new PersonA();
         BeanFieldsUtils.copyPropertyToProperty(personB, emptyPersonA, null, null, null, false, null);
         log(personB, emptyPersonA);
+
+        emptyPersonB = new PersonB();
+        BeanFieldsUtils.copyPropertyToProperty(personA, emptyPersonB,
+                new ArrayList<String>() {{
+                    add("weight");
+                }},
+                new ArrayList<String>() {{
+                    add("height");
+                }},
+                new HashMap<String, String>() {{
+                    put("name", "name");
+                }},
+                false,
+                (sourceFieldName, targetFieldName) -> {
+                    return "birthDate".equals(sourceFieldName) && "birthDay".equals(targetFieldName);
+                }
+        );
+        log(personA, emptyPersonB);
+
+        emptyPersonB = new PersonB();
+        BeanFieldsUtils.copyPropertyToProperty(personA, emptyPersonB,
+                new ArrayList<String>() {{
+                    add("weight");
+                }},
+                new ArrayList<String>() {{
+                    add("height");
+                }},
+                new HashMap<String, String>() {{
+                    put("name", "name");
+                }},
+                true,
+                (sourceFieldName, targetFieldName) -> "birthDate".equals(sourceFieldName) && "birthDay".equals(targetFieldName)
+        );
+        log(personA, emptyPersonB);
+
+        emptyPersonB = new PersonB();
+        BeanFieldsUtils.copyPropertyToProperty(personA, emptyPersonB,
+                null,
+                null,
+                new HashMap<String, String>() {{
+                    put("birthDate", "birthDay");
+                }},
+                false,
+                (sourceFieldName, targetFieldName) -> "age".equals(sourceFieldName) && "height".equals(targetFieldName)
+        );
+        log(personA, emptyPersonB);
     }
 
     public void copyListPropertyToProperty() {
