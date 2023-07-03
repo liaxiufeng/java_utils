@@ -385,7 +385,7 @@ public class BeanFieldsUtils {
             return null;
         }
         Field[] sourceFields = sourceClass.getDeclaredFields();
-        sourceFields = Arrays.stream(sourceFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
+        sourceFields = Arrays.stream(sourceFields).filter(field -> !Modifier.isStatic(field.getModifiers())).toArray(Field[]::new);
         List<String> sourceFieldNames = new LinkedList<>();
         Map<String, Field> sourceFieldNameMap = new HashMap<>();
         for (Field sourceField : sourceFields) {
@@ -393,7 +393,7 @@ public class BeanFieldsUtils {
             sourceFieldNameMap.put(sourceField.getName(), sourceField);
         }
         Field[] targetFields = targetClass.getDeclaredFields();
-        targetFields = Arrays.stream(targetFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
+        targetFields = Arrays.stream(targetFields).filter(field -> !Modifier.isStatic(field.getModifiers())).toArray(Field[]::new);
         List<String> targetFieldNames = new LinkedList<>();
         Map<String, Field> targetFieldNameMap = new HashMap<>();
         for (Field targetField : targetFields) {
@@ -420,7 +420,7 @@ public class BeanFieldsUtils {
             return null;
         }
         Field[] sourceFields = sourceClass.getDeclaredFields();
-        sourceFields = Arrays.stream(sourceFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
+        sourceFields = Arrays.stream(sourceFields).filter(field -> !Modifier.isStatic(field.getModifiers())).toArray(Field[]::new);
         List<String> sourceFieldNames = new LinkedList<>();
         Map<String, Field> sourceFieldNameMap = new HashMap<>();
         for (Field sourceField : sourceFields) {
@@ -442,7 +442,7 @@ public class BeanFieldsUtils {
             return null;
         }
         Field[] targetFields = targetClass.getDeclaredFields();
-        targetFields = Arrays.stream(targetFields).filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList()).toArray(new Field[0]);
+        targetFields = Arrays.stream(targetFields).filter(field -> !Modifier.isStatic(field.getModifiers())).toArray(Field[]::new);
         List<String> targetFieldNames = new LinkedList<>();
         Map<String, Field> targetFieldNameMap = new HashMap<>();
         for (Field targetField : targetFields) {
