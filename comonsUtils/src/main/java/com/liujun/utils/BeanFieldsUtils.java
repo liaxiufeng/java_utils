@@ -415,7 +415,7 @@ public class BeanFieldsUtils {
         return fieldMap;
     }
 
-    private static Map<String, Field> getFieldMap(Class<?> sourceClass, List<String> ignoreSourceFields, boolean ignoreSame, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    private static Map<String, Field> getFieldMap(Class<?> sourceClass, boolean ignoreSame, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (sourceClass == null) {
             return null;
         }
@@ -463,7 +463,7 @@ public class BeanFieldsUtils {
         return filedNameMapConvert(new ArrayList<>(sourceFieldNames), new ArrayList<>(targetFieldNames), ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
     }
 
-    private static Map<String, String> getFieldMap(Set<String> sourceFieldNames, List<String> ignoreSourceFields, boolean ignoreSame, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    private static Map<String, String> getFieldMap(Set<String> sourceFieldNames, boolean ignoreSame, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         return filedNameMapConvert(new ArrayList<>(sourceFieldNames), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
     }
 
@@ -497,7 +497,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> sourceClass = source.getClass();
-        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyPropertyToKey(source, target, fieldMap);
     }
 
@@ -506,7 +506,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> sourceClass = source.getClass();
-        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (S sourceItem : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyPropertyToKey(sourceItem, targetItem, fieldMap);
@@ -552,7 +552,7 @@ public class BeanFieldsUtils {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
-        Map<String, String> fieldMap = getFieldMap(source.keySet(), ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, String> fieldMap = getFieldMap(source.keySet(), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyKeyToKey(source, target, fieldMap);
     }
 
@@ -564,7 +564,7 @@ public class BeanFieldsUtils {
         if (sourceItem == null || sourceItem.isEmpty()) {
             return;
         }
-        Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (Map<String, S> sourceTemp : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
