@@ -477,6 +477,10 @@ public class BeanFieldsUtils {
         copyPropertyToProperty(source, target, fieldMap);
     }
 
+    public static <S, T> void copyPropertyToProperty(S source, T target) {
+        copyPropertyToProperty(source, target, false, null, null, null, false, null);
+    }
+
     public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
         if (source == null || target == null || source.isEmpty()) {
             return;
@@ -492,6 +496,10 @@ public class BeanFieldsUtils {
         copyPropertyToProperty(source, target, fieldMap);
     }
 
+    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target) throws InstantiationException, IllegalAccessException {
+        copyListPropertyToProperty(source, target, false, null, null, null, false, null);
+    }
+
     public static <S, T> void copyPropertyToKey(S source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null) {
             return;
@@ -499,6 +507,10 @@ public class BeanFieldsUtils {
         Class<?> sourceClass = source.getClass();
         Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyPropertyToKey(source, target, fieldMap);
+    }
+
+    public static <S, T> void copyPropertyToKey(S source, Map<String, T> target) {
+        copyPropertyToKey(source, target, false, null, null, null, false, null);
     }
 
     public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
@@ -514,6 +526,10 @@ public class BeanFieldsUtils {
         }
     }
 
+    public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target) {
+        copyListPropertyToKey(source, target, false, null, null, null, false, null);
+    }
+
     public static <S, T> void copyKeyToProperty(Map<String, S> source, T target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
@@ -521,6 +537,10 @@ public class BeanFieldsUtils {
         Class<?> targetClass = target.getClass();
         Map<Field, String> fieldMap = getFieldMap(source.keySet(), targetClass, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         copyKeyToProperty(source, target, fieldMap);
+    }
+
+    public static <S, T> void copyKeyToProperty(Map<String, S> source, T target) {
+        copyKeyToProperty(source, target, false, null, null, null, false, null);
     }
 
     public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
@@ -540,12 +560,8 @@ public class BeanFieldsUtils {
         }
     }
 
-    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
-        if (source == null || source.isEmpty() || target == null || target.isEmpty()) {
-            return;
-        }
-        Map<String, String> fieldMap = getFieldMap(source.keySet(), target.keySet(), ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
-        copyKeyToKey(source, target, fieldMap);
+    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target) throws InstantiationException, IllegalAccessException {
+        copyListKeyToProperty(source, target, false, null, null, null, false, null);
     }
 
     public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
@@ -554,6 +570,10 @@ public class BeanFieldsUtils {
         }
         Map<String, String> fieldMap = getFieldMap(source.keySet(), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyKeyToKey(source, target, fieldMap);
+    }
+
+    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target) {
+        copyKeyToKey(source, target, false, null, null, null, false, null);
     }
 
     public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
@@ -570,6 +590,10 @@ public class BeanFieldsUtils {
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
         }
+    }
+
+    public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target) {
+        copyListKeyToKey(source, target, false, null, null, null, false, null);
     }
 
 }
