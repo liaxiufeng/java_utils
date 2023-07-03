@@ -296,7 +296,7 @@ public class BeanFieldsUtils {
         }
     }
 
-    private static void outOfMapConvert(Map<String, String> fieldNameMap, List<String> sourceFieldsFilter, List<String> targetFieldsFilter, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    private static void outOfMapConvert(Map<String, String> fieldNameMap, List<String> sourceFieldsFilter, List<String> targetFieldsFilter, boolean ignoreSame, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (!ignoreOutOfMap) {
             //通过属性映射处理器将剩余符合条件的属性映射关系存入map
             if (fieldNameCompareHandler != null) {
@@ -309,7 +309,7 @@ public class BeanFieldsUtils {
                 }
             }
             //将剩余的属性名一致的映射关系存入map
-            if (fieldNameMap.size() < sourceFieldsFilter.size() && fieldNameMap.size() < targetFieldsFilter.size()) {
+            if (!ignoreSame && fieldNameMap.size() < sourceFieldsFilter.size() && fieldNameMap.size() < targetFieldsFilter.size()) {
                 for (String sourceFieldName : sourceFieldsFilter) {
                     if (targetFieldsFilter.contains(sourceFieldName)) {
                         addFieldNameMap(fieldNameMap, sourceFieldName, sourceFieldName, false);
@@ -319,7 +319,7 @@ public class BeanFieldsUtils {
         }
     }
 
-    private static void outOfMapConvert(Map<String, String> fieldNameMap, List<String> sourceFieldsFilter, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    private static void outOfMapConvert(Map<String, String> fieldNameMap, List<String> sourceFieldsFilter, boolean ignoreSame, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (!ignoreOutOfMap) {
             //通过属性映射处理器将剩余符合条件的属性映射关系存入map
             if (fieldNameConvertHandler != null) {
@@ -329,7 +329,7 @@ public class BeanFieldsUtils {
                 }
             }
             //将剩余的属性名一致的映射关系存入map
-            if (fieldNameMap.size() < sourceFieldsFilter.size()) {
+            if (!ignoreSame && fieldNameMap.size() < sourceFieldsFilter.size()) {
                 for (String sourceFieldName : sourceFieldsFilter) {
                     addFieldNameMap(fieldNameMap, sourceFieldName, sourceFieldName, false);
                 }
@@ -337,7 +337,7 @@ public class BeanFieldsUtils {
         }
     }
 
-    private static Map<String, String> filedNameMapConvert(List<String> sourceFields, List<String> targetFields, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    private static Map<String, String> filedNameMapConvert(List<String> sourceFields, List<String> targetFields, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         //过滤不需要的属性
         Collection<String> sourceFieldsInMap = sourceToTargetFieldsMap == null ? null : sourceToTargetFieldsMap.keySet();
         Collection<String> targetFieldsInMap = sourceToTargetFieldsMap == null ? null : sourceToTargetFieldsMap.values();
@@ -346,18 +346,18 @@ public class BeanFieldsUtils {
         //开始处理属性映射
         Map<String, String> fieldNameMap = new HashMap<>();
         sourceToTargetFieldsMapConvert(fieldNameMap, sourceFieldsFilter, targetFieldsFilter, sourceToTargetFieldsMap);
-        outOfMapConvert(fieldNameMap, sourceFieldsFilter, targetFieldsFilter, ignoreOutOfMap, fieldNameCompareHandler);
+        outOfMapConvert(fieldNameMap, sourceFieldsFilter, targetFieldsFilter, ignoreSame, ignoreOutOfMap, fieldNameCompareHandler);
         return fieldNameMap;
     }
 
-    private static Map<String, String> filedNameMapConvert(List<String> sourceFields, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    private static Map<String, String> filedNameMapConvert(List<String> sourceFields, boolean ignoreSame, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         //过滤不需要的属性
         Collection<String> sourceFieldsInMap = sourceToTargetFieldsMap == null ? null : sourceToTargetFieldsMap.keySet();
         List<String> sourceFieldsFilter = filedNameFilter(sourceFields, ignoreSourceFields, sourceFieldsInMap, ignoreOutOfMap);
         //开始处理属性映射
         Map<String, String> fieldNameMap = new HashMap<>();
         sourceToTargetFieldsMapConvert(fieldNameMap, sourceFieldsFilter, sourceToTargetFieldsMap);
-        outOfMapConvert(fieldNameMap, sourceFieldsFilter, ignoreOutOfMap, fieldNameConvertHandler);
+        outOfMapConvert(fieldNameMap, sourceFieldsFilter, ignoreSame, ignoreOutOfMap, fieldNameConvertHandler);
         return fieldNameMap;
     }
 
@@ -380,7 +380,7 @@ public class BeanFieldsUtils {
         return null;
     }
 
-    private static <S, T> Map<Field, Field> getFieldMap(Class<S> sourceClass, Class<T> targetClass, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    private static <S, T> Map<Field, Field> getFieldMap(Class<S> sourceClass, Class<T> targetClass, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (sourceClass == null || targetClass == null) {
             return null;
         }
@@ -400,7 +400,7 @@ public class BeanFieldsUtils {
             targetFieldNames.add(targetField.getName());
             targetFieldNameMap.put(targetField.getName(), targetField);
         }
-        Map<String, String> fieldNameMap = filedNameMapConvert(sourceFieldNames, targetFieldNames, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<String, String> fieldNameMap = filedNameMapConvert(sourceFieldNames, targetFieldNames, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         Map<Field, Field> fieldMap = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
             String targetFieldName = entry.getKey();
@@ -415,7 +415,7 @@ public class BeanFieldsUtils {
         return fieldMap;
     }
 
-    private static Map<String, Field> getFieldMap(Class<?> sourceClass, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    private static Map<String, Field> getFieldMap(Class<?> sourceClass, List<String> ignoreSourceFields, boolean ignoreSame, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (sourceClass == null) {
             return null;
         }
@@ -427,7 +427,7 @@ public class BeanFieldsUtils {
             sourceFieldNames.add(sourceField.getName());
             sourceFieldNameMap.put(sourceField.getName(), sourceField);
         }
-        Map<String, String> fieldNameMap = filedNameMapConvert(sourceFieldNames, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, String> fieldNameMap = filedNameMapConvert(sourceFieldNames, ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         Map<String, Field> fieldMap = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
             String targetFieldName = entry.getKey();
@@ -437,7 +437,7 @@ public class BeanFieldsUtils {
         return fieldMap;
     }
 
-    private static Map<Field, String> getFieldMap(Set<String> sourceFieldNames, Class<?> targetClass, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    private static Map<Field, String> getFieldMap(Set<String> sourceFieldNames, Class<?> targetClass, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (targetClass == null) {
             return null;
         }
@@ -449,7 +449,7 @@ public class BeanFieldsUtils {
             targetFieldNames.add(targetField.getName());
             targetFieldNameMap.put(targetField.getName(), targetField);
         }
-        Map<String, String> fieldNameMap = filedNameMapConvert(new ArrayList<>(sourceFieldNames), targetFieldNames, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<String, String> fieldNameMap = filedNameMapConvert(new ArrayList<>(sourceFieldNames), targetFieldNames, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         Map<Field, String> fieldMap = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
             String targetFieldName = entry.getKey();
@@ -459,31 +459,31 @@ public class BeanFieldsUtils {
         return fieldMap;
     }
 
-    private static Map<String, String> getFieldMap(Set<String> sourceFieldNames, Set<String> targetFieldNames, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
-        return filedNameMapConvert(new ArrayList<>(sourceFieldNames), new ArrayList<>(targetFieldNames), ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+    private static Map<String, String> getFieldMap(Set<String> sourceFieldNames, Set<String> targetFieldNames, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+        return filedNameMapConvert(new ArrayList<>(sourceFieldNames), new ArrayList<>(targetFieldNames), ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
     }
 
-    private static Map<String, String> getFieldMap(Set<String> sourceFieldNames, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
-        return filedNameMapConvert(new ArrayList<>(sourceFieldNames), ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+    private static Map<String, String> getFieldMap(Set<String> sourceFieldNames, List<String> ignoreSourceFields, boolean ignoreSame, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+        return filedNameMapConvert(new ArrayList<>(sourceFieldNames), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
     }
 
-    public static <S, T> void copyPropertyToProperty(S source, T target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    public static <S, T> void copyPropertyToProperty(S source, T target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || target == null) {
             return;
         }
         Class<?> sourceClass = source.getClass();
         Class<?> targetClass = target.getClass();
-        Map<Field, Field> fieldMap = getFieldMap(sourceClass, targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<Field, Field> fieldMap = getFieldMap(sourceClass, targetClass, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         copyPropertyToProperty(source, target, fieldMap);
     }
 
-    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
         if (source == null || target == null || source.isEmpty()) {
             return;
         }
         Class<?> sourceGenericType = getGenericType(source, 0);
         Class<?> targetGenericType = getGenericType(target, 0);
-        Map<Field, Field> fieldMap = getFieldMap(sourceGenericType, targetGenericType, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<Field, Field> fieldMap = getFieldMap(sourceGenericType, targetGenericType, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (S sourceItem : source) {
             T targetItem = (T) targetGenericType.newInstance();
             copyPropertyToProperty(sourceItem, targetItem, fieldMap);
@@ -492,21 +492,21 @@ public class BeanFieldsUtils {
         copyPropertyToProperty(source, target, fieldMap);
     }
 
-    public static <S, T> void copyPropertyToKey(S source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyPropertyToKey(S source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null) {
             return;
         }
         Class<?> sourceClass = source.getClass();
-        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyPropertyToKey(source, target, fieldMap);
     }
 
-    public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null || source.isEmpty()) {
             return;
         }
         Class<?> sourceClass = source.getClass();
-        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (S sourceItem : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyPropertyToKey(sourceItem, targetItem, fieldMap);
@@ -514,16 +514,16 @@ public class BeanFieldsUtils {
         }
     }
 
-    public static <S, T> void copyKeyToProperty(Map<String, S> source, T target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    public static <S, T> void copyKeyToProperty(Map<String, S> source, T target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
         Class<?> targetClass = target.getClass();
-        Map<Field, String> fieldMap = getFieldMap(source.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<Field, String> fieldMap = getFieldMap(source.keySet(), targetClass, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         copyKeyToProperty(source, target, fieldMap);
     }
 
-    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -532,7 +532,7 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> targetClass = target.getClass();
-        Map<Field, String> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<Field, String> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (Map<String, S> sourceTemp : source) {
             T targetItem = (T) targetClass.newInstance();
             copyKeyToProperty(sourceTemp, targetItem, fieldMap);
@@ -540,23 +540,23 @@ public class BeanFieldsUtils {
         }
     }
 
-    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
+    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null || target.isEmpty()) {
             return;
         }
-        Map<String, String> fieldMap = getFieldMap(source.keySet(), target.keySet(), ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
+        Map<String, String> fieldMap = getFieldMap(source.keySet(), target.keySet(), ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         copyKeyToKey(source, target, fieldMap);
     }
 
-    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
-        Map<String, String> fieldMap = getFieldMap(source.keySet(), ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, String> fieldMap = getFieldMap(source.keySet(), ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         copyKeyToKey(source, target, fieldMap);
     }
 
-    public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -564,7 +564,7 @@ public class BeanFieldsUtils {
         if (sourceItem == null || sourceItem.isEmpty()) {
             return;
         }
-        Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
+        Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSourceFields, ignoreSame, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (Map<String, S> sourceTemp : source) {
             Map<String, T> targetItem = new HashMap<>();
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
