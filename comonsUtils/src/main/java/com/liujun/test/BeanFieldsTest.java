@@ -107,7 +107,23 @@ public class BeanFieldsTest {
         log(personA, emptyPersonB);
     }
 
-    public void copyListPropertyToProperty() {
+    @Test
+    public void copyListPropertyToProperty() throws InstantiationException, IllegalAccessException {
+        ArrayList<PersonA> personAList = new ArrayList<PersonA>() {{
+            add(PersonBeanFactory.personA());
+            add(PersonBeanFactory.personA2());
+        }};
+        ArrayList<PersonA> emptypersonAS = new ArrayList<PersonA>(){};
+        BeanFieldsUtils.copyListPropertyToProperty(personAList, emptypersonAS);
+        log(personAList, emptypersonAS);
+
+        ArrayList<PersonB> personBList = new ArrayList<PersonB>() {{
+            add(PersonBeanFactory.personB());
+            add(PersonBeanFactory.personB2());
+        }};
+        ArrayList<PersonB> emptypersonBS = new ArrayList<PersonB>(){};
+        BeanFieldsUtils.copyListPropertyToProperty(personBList, emptypersonBS);
+        log(personBList, emptypersonBS);
     }
 
     public void copyPropertyToKey() {

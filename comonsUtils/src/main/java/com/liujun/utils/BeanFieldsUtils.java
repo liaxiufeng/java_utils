@@ -33,6 +33,20 @@ public class BeanFieldsUtils {
         String handler(String sourceFieldName);
     }
 
+    public static class GenericTypeNotFoundException extends RuntimeException {
+        public GenericTypeNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    private static GenericTypeNotFoundException collectionGenericTypeNotFoundException() {
+        return new GenericTypeNotFoundException("无法获取到集合的元素类型，请将没有元素的容器初始化。初始化提示: new Collection<>()更改为new Collection<T>(){}");
+    }
+
+    private static GenericTypeNotFoundException mapGenericTypeNotFoundException() {
+        return new GenericTypeNotFoundException("无法获取到Map的值类型，请将没有元素的Map对初始化。初始化提示: new Map<>()更改为new Map<K,V>(){}");
+    }
+
     /**
      * 类型转换<br/>
      * 支持可强转化类型之间转换，字符串转基本类型，各种类型转字符串<br/>
@@ -245,7 +259,12 @@ public class BeanFieldsUtils {
         for (Map.Entry<String, String> entry : keyKeyMap.entrySet()) {
             String targetKey = entry.getKey();
             String sourceKey = entry.getValue();
-            Class<?> targetValueClass = getGenericType(target, 1);
+            Class<?> targetValueClass;
+            try {
+                targetValueClass = getGenericType(target, 1);
+            } catch (ClassCastException e){
+                throw mapGenericTypeNotFoundException();
+            }
             Object value = parse(source.get(sourceKey), targetValueClass);
             if (value != null) {
                 target.put(targetKey, (T) value);
@@ -486,14 +505,18 @@ public class BeanFieldsUtils {
             return;
         }
         Class<?> sourceGenericType = getGenericType(source, 0);
-        Class<?> targetGenericType = getGenericType(target, 0);
+        Class<?> targetGenericType;
+        try {
+            targetGenericType = getGenericType(target, 0);
+        } catch (ClassCastException e) {
+            throw collectionGenericTypeNotFoundException();
+        }
         Map<Field, Field> fieldMap = getFieldMap(sourceGenericType, targetGenericType, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (S sourceItem : source) {
             T targetItem = (T) targetGenericType.newInstance();
             copyPropertyToProperty(sourceItem, targetItem, fieldMap);
             target.add(targetItem);
         }
-        copyPropertyToProperty(source, target, fieldMap);
     }
 
     public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target) throws InstantiationException, IllegalAccessException {
@@ -586,7 +609,7 @@ public class BeanFieldsUtils {
         }
         Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (Map<String, S> sourceTemp : source) {
-            Map<String, T> targetItem = new HashMap<>();
+            Map<String, T> targetItem = new HashMap<String, T>(){};
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
         }

@@ -28,6 +28,10 @@ public class PersonBeanFactory {
         return new PersonA("迪迦", "1800", "男", "6000", "175", "2000-01-01 01:02:03");
     }
 
+    public static PersonA personA2() {
+        return new PersonA("塞罗", "1900", "男", "7000", "183", "2000-01-01 01:02:03");
+    }
+
     public static Map<String, String> personAMap() {
         Map<String, String> person = new HashMap<>();
         person.put("name", "迪迦");
@@ -41,6 +45,10 @@ public class PersonBeanFactory {
 
     public static PersonB personB() {
         return new PersonB("大古", 18, 60L, 1.75, birth);
+    }
+
+    public static PersonB personB2() {
+        return new PersonB("路人", 17, 70L, 1.83, birth);
     }
 
     public static Map<String, Object> personBMap() {
