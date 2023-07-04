@@ -112,7 +112,7 @@ public class BeanFieldsTest {
     }
 
     @Test
-    public void copyListPropertyToProperty() throws InstantiationException, IllegalAccessException {
+    public void copyListPropertyToProperty() {
         ArrayList<PersonA> personAList = new ArrayList<PersonA>() {{
             add(personA());
             add(PersonBeanFactory.personA2());
@@ -193,7 +193,7 @@ public class BeanFieldsTest {
     }
 
     @Test
-    public void copyListKeyToProperty() throws InstantiationException, IllegalAccessException {
+    public void copyListKeyToProperty() {
         List<Map<String, String>> personAMapList = new ArrayList<Map<String, String>>() {{
             add(PersonBeanFactory.personAMap());
             add(PersonBeanFactory.personAMap2());

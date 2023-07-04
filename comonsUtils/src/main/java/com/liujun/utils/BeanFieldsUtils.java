@@ -508,7 +508,7 @@ public class BeanFieldsUtils {
         copyPropertyToProperty(source, target, false, null, null, null, false, null);
     }
 
-    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || target == null || source.isEmpty()) {
             return;
         }
@@ -521,13 +521,18 @@ public class BeanFieldsUtils {
         }
         Map<Field, Field> fieldMap = getFieldMap(sourceGenericType, targetGenericType, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (S sourceItem : source) {
-            T targetItem = (T) targetGenericType.newInstance();
+            T targetItem = null;
+            try {
+                targetItem = (T) targetGenericType.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             copyPropertyToProperty(sourceItem, targetItem, fieldMap);
             target.add(targetItem);
         }
     }
 
-    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target) {
         copyListPropertyToProperty(source, target, false, null, null, null, false, null);
     }
 
@@ -580,7 +585,7 @@ public class BeanFieldsUtils {
         copyKeyToProperty(source, target, false, null, null, null, false, null);
     }
 
-    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -596,13 +601,18 @@ public class BeanFieldsUtils {
         }
         Map<Field, String> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (Map<String, S> sourceTemp : source) {
-            T targetItem = (T) targetClass.newInstance();
+            T targetItem = null;
+            try {
+                targetItem = (T) targetClass.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             copyKeyToProperty(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
         }
     }
 
-    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target) throws InstantiationException, IllegalAccessException {
+    public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target) {
         copyListKeyToProperty(source, target, false, null, null, null, false, null);
     }
 
