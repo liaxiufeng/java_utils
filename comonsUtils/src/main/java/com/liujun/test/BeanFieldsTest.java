@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 类说明
@@ -113,7 +114,8 @@ public class BeanFieldsTest {
             add(PersonBeanFactory.personA());
             add(PersonBeanFactory.personA2());
         }};
-        ArrayList<PersonA> emptypersonAS = new ArrayList<PersonA>(){};
+        ArrayList<PersonA> emptypersonAS = new ArrayList<PersonA>() {
+        };
         BeanFieldsUtils.copyListPropertyToProperty(personAList, emptypersonAS);
         log(personAList, emptypersonAS);
 
@@ -121,15 +123,57 @@ public class BeanFieldsTest {
             add(PersonBeanFactory.personB());
             add(PersonBeanFactory.personB2());
         }};
-        ArrayList<PersonB> emptypersonBS = new ArrayList<PersonB>(){};
+        ArrayList<PersonB> emptypersonBS = new ArrayList<PersonB>() {
+        };
         BeanFieldsUtils.copyListPropertyToProperty(personBList, emptypersonBS);
         log(personBList, emptypersonBS);
     }
 
+    @Test
     public void copyPropertyToKey() {
+        PersonA personA = PersonBeanFactory.personA();
+        Map<String, Object> emptyPersonA = new HashMap<String, Object>() {
+        };
+        BeanFieldsUtils.copyPropertyToKey(personA, emptyPersonA);
+        log(personA, emptyPersonA);
+
+        Map<String, String> emptyPersonA2 = new HashMap<String, String>() {
+        };
+        BeanFieldsUtils.copyPropertyToKey(personA, emptyPersonA2);
+        log(personA, emptyPersonA2);
+
+        PersonB personB = PersonBeanFactory.personB();
+        Map<String, Object> emptyPersonB = new HashMap<String, Object>() {
+        };
+        BeanFieldsUtils.copyPropertyToKey(personB, emptyPersonB);
+        log(personB, emptyPersonB);
+
+        Map<String, String> emptyPersonB2 = new HashMap<String, String>() {
+        };
+
+        BeanFieldsUtils.copyPropertyToKey(personB, emptyPersonB2);
+        log(personB, emptyPersonB2);
     }
 
+    @Test
     public void copyListPropertyToKey() {
+        ArrayList<PersonA> personAList = new ArrayList<PersonA>() {{
+            add(PersonBeanFactory.personA());
+            add(PersonBeanFactory.personA2());
+        }};
+        ArrayList<Map<String, Object>> emptypersonAS = new ArrayList<Map<String, Object>>() {
+        };
+        BeanFieldsUtils.copyListPropertyToKey(personAList, emptypersonAS);
+        log(personAList, emptypersonAS);
+
+        ArrayList<PersonB> personBList = new ArrayList<PersonB>() {{
+            add(PersonBeanFactory.personB());
+            add(PersonBeanFactory.personB2());
+        }};
+        ArrayList<Map<String, Object>> emptypersonBS = new ArrayList<Map<String, Object>>() {
+        };
+        BeanFieldsUtils.copyListPropertyToKey(personBList, emptypersonBS);
+        log(personBList, emptypersonBS);
     }
 
     public void copyKeyToProperty() {

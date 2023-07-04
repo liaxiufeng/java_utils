@@ -1,6 +1,9 @@
 package com.liujun.utils;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,11 +43,11 @@ public class BeanFieldsUtils {
     }
 
     private static GenericTypeNotFoundException collectionGenericTypeNotFoundException() {
-        return new GenericTypeNotFoundException("无法获取到集合的元素类型，请将没有元素的容器初始化。初始化提示: new Collection<>()更改为new Collection<T>(){}");
+        return new GenericTypeNotFoundException("无法获取到集合的元素类型，请将没有元素的容器初始化。初始化方式: new Collection<>()更改为new Collection<T>(){}");
     }
 
     private static GenericTypeNotFoundException mapGenericTypeNotFoundException() {
-        return new GenericTypeNotFoundException("无法获取到Map的值类型，请将没有元素的Map对初始化。初始化提示: new Map<>()更改为new Map<K,V>(){}");
+        return new GenericTypeNotFoundException("无法获取到Map的值类型，请将没有元素的Map初始化。初始化方式: new Map<>()更改为new Map<K,V>(){}");
     }
 
     /**
@@ -205,7 +208,12 @@ public class BeanFieldsUtils {
             Field sourceField = entry.getValue();
             try {
                 sourceField.setAccessible(true);
-                Class<?> targetValueClass = getGenericType(target, 1);
+                Class<?> targetValueClass;
+                try {
+                    targetValueClass = getGenericType(target, 1);
+                } catch (ClassCastException e) {
+                    throw mapGenericTypeNotFoundException();
+                }
                 Object value = parse(sourceField.get(source), targetValueClass);
                 if (value != null) {
                     target.put(targetKey, (T) value);
@@ -262,7 +270,7 @@ public class BeanFieldsUtils {
             Class<?> targetValueClass;
             try {
                 targetValueClass = getGenericType(target, 1);
-            } catch (ClassCastException e){
+            } catch (ClassCastException e) {
                 throw mapGenericTypeNotFoundException();
             }
             Object value = parse(source.get(sourceKey), targetValueClass);
@@ -426,7 +434,7 @@ public class BeanFieldsUtils {
             String sourceFieldName = entry.getValue();
             Field targetField = targetFieldNameMap.get(targetFieldName);
             Field sourceField = sourceFieldNameMap.get(sourceFieldName);
-            if (targetField == null && sourceField == null){
+            if (targetField == null && sourceField == null) {
                 fieldMap.put(targetField, sourceField);
             }
             fieldMap.put(targetField, sourceField);
@@ -536,21 +544,27 @@ public class BeanFieldsUtils {
         copyPropertyToKey(source, target, false, null, null, null, false, null);
     }
 
-    public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S> void copyListPropertyToKey(List<S> source, List<Map<String, Object>> target, boolean ignoreSame, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null || source.isEmpty()) {
             return;
         }
-        Class<?> sourceClass = source.getClass();
+        Class<?> sourceClass;
+        try {
+            sourceClass = getGenericType(source, 0);
+        } catch (ClassCastException e) {
+            throw collectionGenericTypeNotFoundException();
+        }
         Map<String, Field> fieldMap = getFieldMap(sourceClass, ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (S sourceItem : source) {
-            Map<String, T> targetItem = new HashMap<>();
+            HashMap<String, Object> targetItem = new HashMap<String, Object>() {
+            };
             copyPropertyToKey(sourceItem, targetItem, fieldMap);
             target.add(targetItem);
         }
     }
 
-    public static <S, T> void copyListPropertyToKey(List<S> source, List<Map<String, T>> target) {
-        copyListPropertyToKey(source, target, false, null, null, null, false, null);
+    public static <S> void copyListPropertyToKey(List<S> source, List<Map<String, Object>> target) {
+        copyListPropertyToKey(source, target, false, null, null, false, null);
     }
 
     public static <S, T> void copyKeyToProperty(Map<String, S> source, T target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
@@ -609,7 +623,8 @@ public class BeanFieldsUtils {
         }
         Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (Map<String, S> sourceTemp : source) {
-            Map<String, T> targetItem = new HashMap<String, T>(){};
+            Map<String, T> targetItem = new HashMap<String, T>() {
+            };
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
         }
