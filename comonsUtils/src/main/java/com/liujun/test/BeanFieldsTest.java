@@ -8,7 +8,10 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static com.liujun.bean.PersonBeanFactory.personA;
 
 /**
  * 类说明
@@ -26,7 +29,7 @@ public class BeanFieldsTest {
 
     @Test
     public void copyPropertyToProperty() {
-        PersonA personA = PersonBeanFactory.personA();
+        PersonA personA = personA();
 
         PersonA emptyPersonA = new PersonA();
         BeanFieldsUtils.copyPropertyToProperty(personA, emptyPersonA, false, null, null, null, false, null);
@@ -111,7 +114,7 @@ public class BeanFieldsTest {
     @Test
     public void copyListPropertyToProperty() throws InstantiationException, IllegalAccessException {
         ArrayList<PersonA> personAList = new ArrayList<PersonA>() {{
-            add(PersonBeanFactory.personA());
+            add(personA());
             add(PersonBeanFactory.personA2());
         }};
         ArrayList<PersonA> emptypersonAS = new ArrayList<PersonA>() {
@@ -131,7 +134,7 @@ public class BeanFieldsTest {
 
     @Test
     public void copyPropertyToKey() {
-        PersonA personA = PersonBeanFactory.personA();
+        PersonA personA = personA();
         Map<String, Object> emptyPersonA = new HashMap<String, Object>() {
         };
         BeanFieldsUtils.copyPropertyToKey(personA, emptyPersonA);
@@ -158,7 +161,7 @@ public class BeanFieldsTest {
     @Test
     public void copyListPropertyToKey() {
         ArrayList<PersonA> personAList = new ArrayList<PersonA>() {{
-            add(PersonBeanFactory.personA());
+            add(personA());
             add(PersonBeanFactory.personA2());
         }};
         ArrayList<Map<String, Object>> emptypersonAS = new ArrayList<Map<String, Object>>() {
@@ -176,10 +179,38 @@ public class BeanFieldsTest {
         log(personBList, emptypersonBS);
     }
 
+    @Test
     public void copyKeyToProperty() {
+        Map<String, String> personAMap1 = PersonBeanFactory.personAMap();
+        PersonA personA = personA();
+        BeanFieldsUtils.copyKeyToProperty(personAMap1, personA);
+        log(personAMap1, personA);
+
+        Map<String, Object> personBMap = PersonBeanFactory.personBMap();
+        PersonB personB = new PersonB();
+        BeanFieldsUtils.copyKeyToProperty(personBMap, personB);
+        log(personBMap, personB);
     }
 
-    public void copyListKeyToProperty() {
+    @Test
+    public void copyListKeyToProperty() throws InstantiationException, IllegalAccessException {
+        List<Map<String, String>> personAMapList = new ArrayList<Map<String, String>>() {{
+            add(PersonBeanFactory.personAMap());
+            add(PersonBeanFactory.personAMap2());
+        }};
+        List<PersonA> personAList = new ArrayList<PersonA>() {
+        };
+        BeanFieldsUtils.copyListKeyToProperty(personAMapList, personAList);
+        log(personAMapList, personAList);
+
+        List<Map<String, Object>> personBMapList = new ArrayList<Map<String, Object>>() {{
+            add(PersonBeanFactory.personBMap());
+            add(PersonBeanFactory.personBMap2());
+        }};
+        List<PersonB> personBList = new ArrayList<PersonB>() {
+        };
+        BeanFieldsUtils.copyListKeyToProperty(personBMapList, personBList);
+        log(personBMapList, personBList);
     }
 
     public void copyKeyToKey() {

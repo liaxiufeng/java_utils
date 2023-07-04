@@ -43,6 +43,17 @@ public class PersonBeanFactory {
         return person;
     }
 
+    public static Map<String, String> personAMap2() {
+        Map<String, String> person = new HashMap<>();
+        person.put("name", "塞罗");
+        person.put("f_age", "1900");
+        person.put("f_sex", "男");
+        person.put("f_weight", "7000");
+        person.put("f_height", "183");
+        person.put("f_birthDate", "2000-01-01 01:02:03");
+        return person;
+    }
+
     public static PersonB personB() {
         return new PersonB("大古", 18, 60L, 1.75, birth);
     }
@@ -57,6 +68,16 @@ public class PersonBeanFactory {
         person.put("age", 18);
         person.put("weight", 60L);
         person.put("height", 1.75);
+        person.put("birthDay", birth);
+        return person;
+    }
+
+    public static Map<String, Object> personBMap2() {
+        Map<String, Object> person = new HashMap<>();
+        person.put("name", "路人");
+        person.put("age", 17);
+        person.put("weight", 70L);
+        person.put("height", 1.83);
         person.put("birthDay", birth);
         return person;
     }

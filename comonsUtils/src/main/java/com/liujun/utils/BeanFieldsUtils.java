@@ -588,7 +588,12 @@ public class BeanFieldsUtils {
         if (sourceItem == null || sourceItem.isEmpty()) {
             return;
         }
-        Class<?> targetClass = target.getClass();
+        Class<?> targetClass;
+        try {
+            targetClass = getGenericType(target, 0);
+        } catch (ClassCastException e) {
+            throw collectionGenericTypeNotFoundException();
+        }
         Map<Field, String> fieldMap = getFieldMap(sourceItem.keySet(), targetClass, ignoreSame, ignoreSourceFields, ignoreTargetFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameCompareHandler);
         for (Map<String, S> sourceTemp : source) {
             T targetItem = (T) targetClass.newInstance();
