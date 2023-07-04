@@ -213,10 +213,49 @@ public class BeanFieldsTest {
         log(personBMapList, personBList);
     }
 
+    @Test
     public void copyKeyToKey() {
+        Map<String, String> personAMap = PersonBeanFactory.personAMap();
+        Map<String, String> personA = new HashMap<String, String>() {
+        };
+        BeanFieldsUtils.copyKeyToKey(personAMap, personA);
+        log(personAMap, personA);
+
+        Map<String, Object> personA2 = new HashMap<String, Object>() {
+        };
+        BeanFieldsUtils.copyKeyToKey(personAMap, personA2);
+        log(personAMap, personA2);
+
+        Map<String, Object> personBMap = PersonBeanFactory.personBMap();
+        Map<String, Object> personB = new HashMap<String, Object>() {
+        };
+        BeanFieldsUtils.copyKeyToKey(personBMap, personB);
+        log(personBMap, personB);
+
+        Map<String, String> personB2 = new HashMap<String, String>() {
+        };
+        BeanFieldsUtils.copyKeyToKey(personBMap, personB2);
+        log(personBMap, personB2);
     }
 
     public void copyListKeyToKey() {
+        List<Map<String, String>> personAMapList = new ArrayList<Map<String, String>>() {{
+            add(PersonBeanFactory.personAMap());
+            add(PersonBeanFactory.personAMap2());
+        }};
+        List<Map<String, Object>> personAList = new ArrayList<Map<String, Object>>() {
+        };
+        BeanFieldsUtils.copyListKeyToKey(personAMapList, personAList);
+        log(personAMapList, personAList);
+
+        List<Map<String, Object>> personBMapList = new ArrayList<Map<String, Object>>() {{
+            add(PersonBeanFactory.personBMap());
+            add(PersonBeanFactory.personBMap2());
+        }};
+        List<Map<String, Object>> personBList = new ArrayList<Map<String, Object>>() {
+        };
+        BeanFieldsUtils.copyListKeyToKey(personBMapList, personBList);
+        log(personBMapList, personBList);
     }
 
 }
