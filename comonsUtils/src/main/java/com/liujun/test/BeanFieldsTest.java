@@ -238,6 +238,7 @@ public class BeanFieldsTest {
         log(personBMap, personB2);
     }
 
+    @Test
     public void copyListKeyToKey() {
         List<Map<String, String>> personAMapList = new ArrayList<Map<String, String>>() {{
             add(PersonBeanFactory.personAMap());

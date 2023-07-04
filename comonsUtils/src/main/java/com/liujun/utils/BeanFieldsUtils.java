@@ -618,7 +618,7 @@ public class BeanFieldsUtils {
         copyKeyToKey(source, target, false, null, null, null, false, null);
     }
 
-    public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
+    public static <S> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, Object>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
         }
@@ -628,14 +628,14 @@ public class BeanFieldsUtils {
         }
         Map<String, String> fieldMap = getFieldMap(sourceItem.keySet(), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
         for (Map<String, S> sourceTemp : source) {
-            Map<String, T> targetItem = new HashMap<String, T>() {
+            Map<String, Object> targetItem = new HashMap<String, Object>() {
             };
             copyKeyToKey(sourceTemp, targetItem, fieldMap);
             target.add(targetItem);
         }
     }
 
-    public static <S, T> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, T>> target) {
+    public static <S> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, Object>> target) {
         copyListKeyToKey(source, target, false, null, null, null, false, null);
     }
 
