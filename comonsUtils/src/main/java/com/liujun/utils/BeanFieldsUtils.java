@@ -36,6 +36,9 @@ public class BeanFieldsUtils {
         String handler(String sourceFieldName);
     }
 
+    /**
+     * 泛型类型未找到异常
+     */
     public static class GenericTypeNotFoundException extends RuntimeException {
         public GenericTypeNotFoundException(String message) {
             super(message);
@@ -494,6 +497,19 @@ public class BeanFieldsUtils {
         return filedNameMapConvert(new ArrayList<>(sourceFieldNames), ignoreSame, ignoreSourceFields, sourceToTargetFieldsMap, ignoreOutOfMap, fieldNameConvertHandler);
     }
 
+    /**
+     * 复制对象属性到对象属性
+     * @param source 源对象
+     * @param target 目标对象
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源对象属性名
+     * @param ignoreTargetFields 忽略的目标对象属性名
+     * @param sourceToTargetFieldsMap 源对象属性名->目标对象属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameCompareHandler 属性名比较处理器
+     * @param <S> 源对象类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyPropertyToProperty(S source, T target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || target == null) {
             return;
@@ -504,10 +520,30 @@ public class BeanFieldsUtils {
         copyPropertyToProperty(source, target, fieldMap);
     }
 
+    /**
+     * 复制对象属性到对象属性
+     * @param source 源对象
+     * @param target 目标对象
+     * @param <S> 源对象类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyPropertyToProperty(S source, T target) {
         copyPropertyToProperty(source, target, false, null, null, null, false, null);
     }
 
+    /**
+     * 复制列表对象属性，到目标对象属后添加到列表中
+     * @param source 源对象列表
+     * @param target 目标对象列表
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源对象属性名
+     * @param ignoreTargetFields 忽略的目标对象属性名
+     * @param sourceToTargetFieldsMap 源对象属性名->目标对象属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameCompareHandler 属性名比较处理器
+     * @param <S> 源对象类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || target == null || source.isEmpty()) {
             return;
@@ -532,10 +568,30 @@ public class BeanFieldsUtils {
         }
     }
 
+    /**
+     * 复制列表对象属性，到目标对象属后添加到列表中
+     * @param source 源对象列表
+     * @param target 目标对象列表
+     * @param <S> 源对象类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyListPropertyToProperty(List<S> source, List<T> target) {
         copyListPropertyToProperty(source, target, false, null, null, null, false, null);
     }
 
+    /**
+     * 复制对象属性到map的属性值
+     * @param source 源对象
+     * @param target 目标map
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源对象属性名
+     * @param ignoreTargetFields 忽略的目标map属性名
+     * @param sourceToTargetFieldsMap 源对象属性名->目标map属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameConvertHandler 属性名转换处理器
+     * @param <S> 源对象类型
+     * @param <T> 目标map值类型
+     */
     public static <S, T> void copyPropertyToKey(S source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null) {
             return;
@@ -545,10 +601,28 @@ public class BeanFieldsUtils {
         copyPropertyToKey(source, target, fieldMap);
     }
 
+    /**
+     * 复制对象属性到map的属性值
+     * @param source 源对象
+     * @param target 目标map
+     * @param <S> 源对象类型
+     * @param <T> 目标map值类型
+     */
     public static <S, T> void copyPropertyToKey(S source, Map<String, T> target) {
         copyPropertyToKey(source, target, false, null, null, null, false, null);
     }
 
+    /**
+     * 复制列表对象属性，到map的属性值，并将map添加到列表中
+     * @param source 源对象列表
+     * @param target 目标map列表
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源对象属性名
+     * @param sourceToTargetFieldsMap 源对象属性名->目标map属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameConvertHandler 属性名转换处理器
+     * @param <S> 源对象类型
+     */
     public static <S> void copyListPropertyToKey(List<S> source, List<Map<String, Object>> target, boolean ignoreSame, List<String> ignoreSourceFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || target == null || source.isEmpty()) {
             return;
@@ -568,10 +642,29 @@ public class BeanFieldsUtils {
         }
     }
 
+    /**
+     * 复制列表对象属性，到map的属性值，并将map添加到列表中
+     * @param source 源对象列表
+     * @param target 目标map列表
+     * @param <S>
+     */
     public static <S> void copyListPropertyToKey(List<S> source, List<Map<String, Object>> target) {
         copyListPropertyToKey(source, target, false, null, null, false, null);
     }
 
+    /**
+     * 复制map的属性值到对象的属性值
+     * @param source 源map
+     * @param target 目标对象
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源map属性名
+     * @param ignoreTargetFields 忽略的目标对象属性名
+     * @param sourceToTargetFieldsMap 源map属性名->目标对象属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameCompareHandler 属性名比较处理器
+     * @param <S> 源map值类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyKeyToProperty(Map<String, S> source, T target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
@@ -581,10 +674,30 @@ public class BeanFieldsUtils {
         copyKeyToProperty(source, target, fieldMap);
     }
 
+    /**
+     * 复制map的属性值到对象的属性值
+     * @param source 源map
+     * @param target 目标对象
+     * @param <S> 源map值类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyKeyToProperty(Map<String, S> source, T target) {
         copyKeyToProperty(source, target, false, null, null, null, false, null);
     }
 
+    /**
+     * 复制列表map的属性值，到目标对象属后添加到列表中
+     * @param source 源map列表
+     * @param target 目标对象列表
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源map属性名
+     * @param ignoreTargetFields 忽略的目标对象属性名
+     * @param sourceToTargetFieldsMap 源map属性名->目标对象属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameCompareHandler 属性名比较处理器
+     * @param <S> 源map值类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameCompareHandler fieldNameCompareHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
@@ -612,10 +725,30 @@ public class BeanFieldsUtils {
         }
     }
 
+    /**
+     * 复制列表map的属性值，到目标对象属后添加到列表中
+     * @param source 源map列表
+     * @param target 目标对象列表
+     * @param <S> 源map值类型
+     * @param <T> 目标对象类型
+     */
     public static <S, T> void copyListKeyToProperty(List<Map<String, S>> source, List<T> target) {
         copyListKeyToProperty(source, target, false, null, null, null, false, null);
     }
 
+    /**
+     * 复制对象属性到map的属性值
+     * @param source 源对象
+     * @param target 目标map
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源对象属性名
+     * @param ignoreTargetFields 忽略的目标map属性名
+     * @param sourceToTargetFieldsMap 源对象属性名->目标map属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameConvertHandler 属性名转换处理器
+     * @param <S> 源对象类型
+     * @param <T> 目标map值类型
+     */
     public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
@@ -624,10 +757,29 @@ public class BeanFieldsUtils {
         copyKeyToKey(source, target, fieldMap);
     }
 
+    /**
+     * 复制对象属性到map的属性值
+     * @param source 源对象
+     * @param target 目标map
+     * @param <S> 源对象类型
+     * @param <T> 目标map值类型
+     */
     public static <S, T> void copyKeyToKey(Map<String, S> source, Map<String, T> target) {
         copyKeyToKey(source, target, false, null, null, null, false, null);
     }
 
+    /**
+     * 复制列表map的属性值，到map的属性值，并将map添加到列表中
+     * @param source 源map列表
+     * @param target 目标map列表
+     * @param ignoreSame 是否忽略属性名一致的属性
+     * @param ignoreSourceFields 忽略的源map属性名
+     * @param ignoreTargetFields 忽略的目标map属性名
+     * @param sourceToTargetFieldsMap 源map属性名->目标map属性名的映射
+     * @param ignoreOutOfMap 是否忽略映射外的属性
+     * @param fieldNameConvertHandler 属性名转换处理器
+     * @param <S> 源map值类型
+     */
     public static <S> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, Object>> target, boolean ignoreSame, List<String> ignoreSourceFields, List<String> ignoreTargetFields, Map<String, String> sourceToTargetFieldsMap, boolean ignoreOutOfMap, FieldNameConvertHandler fieldNameConvertHandler) {
         if (source == null || source.isEmpty() || target == null) {
             return;
@@ -645,6 +797,12 @@ public class BeanFieldsUtils {
         }
     }
 
+    /**
+     * 复制列表map的属性值，到map的属性值，并将map添加到列表中
+     * @param source 源map列表
+     * @param target 目标map列表
+     * @param <S> 源map值类型
+     */
     public static <S> void copyListKeyToKey(List<Map<String, S>> source, List<Map<String, Object>> target) {
         copyListKeyToKey(source, target, false, null, null, null, false, null);
     }
