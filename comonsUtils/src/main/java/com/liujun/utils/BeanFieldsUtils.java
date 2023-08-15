@@ -737,7 +737,7 @@ public class BeanFieldsUtils {
     }
 
     /**
-     * 复制对象属性到map的属性值
+     * 复制列表map的属性值，到map的属性值
      * @param source 源对象
      * @param target 目标map
      * @param ignoreSame 是否忽略属性名一致的属性
@@ -758,7 +758,7 @@ public class BeanFieldsUtils {
     }
 
     /**
-     * 复制对象属性到map的属性值
+     * 复制列表map的属性值，到map的属性值
      * @param source 源对象
      * @param target 目标map
      * @param <S> 源对象类型
