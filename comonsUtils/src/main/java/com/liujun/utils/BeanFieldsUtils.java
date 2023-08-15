@@ -16,8 +16,15 @@ import java.util.stream.Stream;
  */
 public class BeanFieldsUtils {
 
+    /**
+     * 属性名比较处理器<br/>
+     * lambda表达式: (源属性名称或key, 目标属性名称或key) => 是否匹配
+     */
     public interface FieldNameCompareHandler {
         /**
+         * 属性名比较处理器<br/>
+         * lambda表达式: (源属性名称或key, 目标属性名称或key) => 是否匹配
+         *
          * @param sourceFieldName 源属性名称或key
          * @param targetFieldName 目标属性名称或key
          * @return 是否是需要赋值的属性或key
@@ -25,6 +32,10 @@ public class BeanFieldsUtils {
         boolean handler(String sourceFieldName, String targetFieldName);
     }
 
+    /**
+     * 属性名转换处理器<br/>
+     * lambda表达式: 源对象属性名或key -> 目标对象属性名或key
+     */
     public interface FieldNameConvertHandler {
         /**
          * 属性名映射处理器
