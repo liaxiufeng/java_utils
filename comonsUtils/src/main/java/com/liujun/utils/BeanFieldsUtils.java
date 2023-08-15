@@ -405,7 +405,8 @@ public class BeanFieldsUtils {
     /**
      * 获取泛型类型
      *
-     * @param obj obj 对象
+     * @param obj 对象
+     * @param index 泛型的索引，从0开始
      * @return 泛型类型
      */
     private static <T> Class<?> getGenericType(T obj, int index) {
