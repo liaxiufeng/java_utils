@@ -28,6 +28,17 @@ public class BeanFieldsTest {
     }
 
     @Test
+    public void copyFiledOneToMany() {
+        PersonA personA = personA();
+
+        PersonA emptyPersonA = new PersonA();
+        BeanFieldsUtils.copyPropertyToProperty(personA, emptyPersonA, true, null, null, null, false, (sourceFieldName, targetFieldName) -> {
+            return "age".equals(sourceFieldName) && ("age".equals(targetFieldName) || "name".equals(targetFieldName));
+        });
+        log(personA, emptyPersonA);
+    }
+
+    @Test
     public void copyPropertyToProperty() {
         PersonA personA = personA();
 
