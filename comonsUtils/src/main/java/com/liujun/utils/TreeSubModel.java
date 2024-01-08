@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import java.lang.reflect.Array;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -90,6 +91,11 @@ public abstract class TreeSubModel<T, P> {
         }
     }
 
+    /**
+     * 获取全部树
+     * @param foreignKey
+     * @return
+     */
     public JSONObject getTree(P foreignKey) {
         //获取全部数据
         List<T> allEntities = getAllEntity(foreignKey);
@@ -100,6 +106,29 @@ public abstract class TreeSubModel<T, P> {
         return rootNode;
     }
 
+    /**
+     * 获取主键为primaryKey开始的部分树
+     * @param foreignKey 外键
+     * @param primaryKey 主键
+     * @return 树
+     */
+    public JSONObject getTree(P foreignKey, P primaryKey) {
+        if (primaryKey == null || primaryKey.toString().isEmpty()) {
+            return null;
+        }
+        //获取全部数据
+        List<T> allEntities = getAllEntity(foreignKey);
+        T t = allEntities.stream().filter(entity -> Objects.equals(getPrimaryKey(entity), primaryKey)).findFirst().get();
+        JSONObject node = getNode(t);
+        getTree(primaryKey, node, allEntities);
+        return node;
+    }
+
+    /**
+     * 删除主键为primaryKey的数据以及其子数据
+     * @param primaryKey 主键
+     * @return 删除的数据条数
+     */
     public Integer removeEntityAndChildren(P primaryKey) {
         T entity = getEntity(primaryKey);
         P foreignKey = getForeignKey(entity);
